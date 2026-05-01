@@ -41,6 +41,25 @@ body {
   position: relative;
 }
 
+/* Make the main container a flex column */
+#app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* When this class is applied, it flips the layout instantly */
+#app-container.search-bottom {
+  flex-direction: column-reverse;
+}
+
+/* Adjust borders so it looks clean on the bottom */
+#app-container.search-bottom #header-bar {
+  border-bottom: none;
+  border-top: 1px solid var(--border-color);
+}
+
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }

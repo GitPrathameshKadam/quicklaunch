@@ -69,10 +69,21 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ── Load from storage ─────────────────────────────────────────────────────
-  chrome.storage.local.get(['settings', 'shortcuts'], (result) => {
-    if (result.settings) settings = { ...settings, ...result.settings };
-    if (result.shortcuts) shortcuts = result.shortcuts;
 
+  chrome.storage.local.get(['settings', 'shortcuts', 'searchPosition'], (result) => {
+    if (result.settings) {
+      settings = { ...settings, ...result.settings };
+    }
+    if (result.shortcuts) {
+      shortcuts = result.shortcuts;
+    }
+    
+    // Apply search position
+    if (result.searchPosition === 'bottom') {
+      document.getElementById('app-container').classList.add('search-bottom');
+    }
+
+    // Apply theme and grid gap
     applySettings();
     renderGrid(shortcuts);
   });

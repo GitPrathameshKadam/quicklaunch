@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const accentColorInput= document.getElementById('accentColor');
   const resetAccentBtn  = document.getElementById('resetAccentBtn');
   const openInNewTabCb  = document.getElementById('openInNewTab');
+  const searchPositionControl = document.getElementById('searchPositionControl');
 
   const shortcutsList   = document.getElementById('shortcutsList');
   const addShortcutBtn  = document.getElementById('addShortcutBtn');
@@ -68,9 +69,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const DEFAULT_ACCENT = { dark: '#8ab4f8', light: '#1a73e8', system: '#8ab4f8' };
 
   // ── Load storage ──────────────────────────────────────────────────────────
-  chrome.storage.local.get(['settings', 'shortcuts'], (result) => {
+  chrome.storage.local.get(['settings', 'shortcuts', 'searchPosition'], (result) => {
     if (result.settings) settings = { ...settings, ...result.settings };
     if (result.shortcuts) shortcuts = result.shortcuts;
+    if (result.searchPosition) settings.searchPosition = result.searchPosition;
     applySettingsToUI();
     renderShortcutsList();
   });
@@ -97,6 +99,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.shape-option').forEach(opt => {
       opt.classList.toggle('active', opt.dataset.value === shapeVal);
     });
+    // Search position
+    setSegmented(searchPositionControl, settings.searchPosition || 'top');
 
     // Accent color
     const defaultAcc = DEFAULT_ACCENT[settings.theme] || DEFAULT_ACCENT.dark;
@@ -154,6 +158,15 @@ document.addEventListener('DOMContentLoaded', () => {
     updatePreview();
     saveSettings();
   });
+
+  searchPositionControl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.seg-btn');
+    if (!btn) return;
+    settings.searchPosition = btn.dataset.value;
+    setSegmented(searchPositionControl, settings.searchPosition);
+    chrome.storage.local.set({ searchPosition: settings.searchPosition }, () => showToast());
+  });
+
 
   // ── Icon shape ────────────────────────────────────────────────────────────
   shapeRadios.forEach(radio => {

@@ -187,13 +187,24 @@
     <!-- ── Behavior ── -->
     <section id="behavior" style="display:none;">
       <h2>Behavior</h2>
-      <p class="subtitle">Control how QuickLaunch opens links.</p>
+      <p class="subtitle">Control how QuickLaunch opens links and behaves.</p>
 
       <div class="setting-group checkbox-group">
         <input type="checkbox" id="openInNewTab" checked>
         <label for="openInNewTab">Open shortcuts in a new tab</label>
       </div>
       <p class="hint">When unchecked, shortcuts open in the current tab.</p>
+
+      <div class="divider"></div>
+
+      <div class="setting-group">
+        <label>Search Bar Position</label>
+        <div class="segmented-control" id="searchPositionControl">
+          <button data-value="top" class="seg-btn active">Top</button>
+          <button data-value="bottom" class="seg-btn">Bottom</button>
+        </div>
+        <p class="hint">Choose where the search and settings bar should appear in the popup.</p>
+      </div>
     </section>
 
     <!-- ── Import / Export ── -->
