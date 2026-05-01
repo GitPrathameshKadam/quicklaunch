@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "QuickLaunch",
-  "version": "1.1",
-  "description": "Quick access to your favorite websites.",
+  "version": "2.0",
+  "description": "Quick access to your favorite websites with workspaces and hotkeys.",
   "action": {
     "default_popup": "popup.html",
     "default_icon": "icon.png"
@@ -10,7 +10,8 @@
   "options_page": "options.html",
   "permissions": [
     "storage",
-    "tabs"
+    "tabs",
+    "contextMenus"
   ],
   "background": {
     "service_worker": "background.js"
