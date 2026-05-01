@@ -5,40 +5,26 @@ chrome.runtime.onInstalled.addListener(() => {
     title: "Add to QuickLaunch",
     contexts: ["page"]
   });
-
-  // Initialize Default Data
-  chrome.storage.sync.get(['workspaces', 'shortcuts'], (data) => {
-    // Migrate old flat shortcuts or set defaults
-    if (!data.workspaces) {
-      const initialShortcuts = data.shortcuts || [
-        { title: "Youtube", url: "https://www.youtube.com" },
-        { title: "Gmail", url: "https://mail.google.com" }
-      ];
-      chrome.storage.sync.set({
-        workspaces: [{ id: 'default', name: 'Main', shortcuts: initialShortcuts }],
-        activeWorkspace: 'default',
-        searchPosition: 'top',
-        openInNewTab: true,
-        enableWorkspaces: false,
-        hotkeyAction: 'launch'
-      });
-    }
-  });
 });
 
 // Handle Context Menu Click
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === "add-to-quicklaunch") {
-    chrome.storage.sync.get(['workspaces', 'activeWorkspace'], (data) => {
-      let workspaces = data.workspaces || [];
-      let activeId = data.activeWorkspace || 'default';
+    // Note: We use chrome.storage.local instead of chrome.storage.sync 
+    // to match the rest of the application's storage architecture (popup.js & options.js)
+    chrome.storage.local.get(['shortcuts'], (data) => {
+      let shortcuts = data.shortcuts || [];
       
-      let wsIndex = workspaces.findIndex(w => w.id === activeId);
-      if (wsIndex === -1) wsIndex = 0; // fallback
+      // Prevent duplicates
+      const exists = shortcuts.some(s => s.url === tab.url);
       
-      if (workspaces[wsIndex]) {
-        workspaces[wsIndex].shortcuts.push({ title: tab.title, url: tab.url });
-        chrome.storage.sync.set({ workspaces: workspaces });
+      if (!exists) {
+        shortcuts.push({ 
+          title: tab.title || "New Shortcut", 
+          url: tab.url,
+          icon: tab.favIconUrl || "" 
+        });
+        chrome.storage.local.set({ shortcuts: shortcuts });
       }
     });
   }
