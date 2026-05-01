@@ -93,12 +93,10 @@ nav {
 }
 
 .sidebar-nav svg {
-    width: 24px;
-    height: 24px;
-    flex-shrink: 0;
-    /* Optional: Add spacing between the icon and the text */
-    margin-right: 12px; 
-} 
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
 
 
 .nav-link:hover {
@@ -446,6 +444,7 @@ input[type="color"]::-webkit-color-swatch { border: none; border-radius: 5px; }
 .shortcuts-list-header {
   display: grid;
   grid-template-columns: auto 2fr 3fr 80px;
+  gap: 12px;
   padding: 0 14px 8px;
   color: var(--text-secondary);
   font-size: 11px;
