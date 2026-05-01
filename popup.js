@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     iconSize: 48,
     accentColor: '',
     openInNewTab: true,
+    showBadges: true,
   };
 
   let shortcuts = [];
@@ -158,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
       title.style.fontSize = `${settings.fontSize}px`;
 
       // Hotkey badge (1-9)
-      if (i < 9) {
+      if (i < 9 && settings.showBadges !== false) {
         const badge = document.createElement('div');
         badge.className = 'hotkey-badge';
         badge.textContent = i + 1;

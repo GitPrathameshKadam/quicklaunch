@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const rowsInput       = document.getElementById('rows');
   const colsInput       = document.getElementById('cols');
   const showTitlesCb    = document.getElementById('showTitles');
+  const showBadgesCb    = document.getElementById('showBadges');
   const fontSizeInput   = document.getElementById('fontSize');
   const fontSizeDisplay = document.getElementById('fontSizeDisplay');
   const gridGapInput    = document.getElementById('gridGap');
@@ -61,6 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
     iconSize: 48,
     accentColor: '',
     openInNewTab: true,
+    showBadges: true,
   };
   let shortcuts = [];
   let dragSrcEl = null;
@@ -81,6 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
     rowsInput.value = settings.rows;
     colsInput.value = settings.cols;
     showTitlesCb.checked = settings.showTitles;
+    showBadgesCb.checked = settings.showBadges !== false;
     fontSizeInput.value  = settings.fontSize;
     gridGapInput.value   = settings.gridGap;
     popupWidthInput.value= settings.popupWidth;
@@ -210,6 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
   colsInput.addEventListener('change', saveSettings);
 
   showTitlesCb.addEventListener('change', () => { updatePreview(); saveSettings(); });
+  showBadgesCb.addEventListener('change', saveSettings);
   openTabSelect.addEventListener('change', saveSettings);
   hotkeyActionSelect.addEventListener('change', saveSettings);
 
@@ -229,6 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
       accentColor: settings.accentColor,
       openInNewTab: openTabSelect.value === 'new',
       hotkeyAction: hotkeyActionSelect.value,
+      showBadges: showBadgesCb.checked,
     };
     chrome.storage.local.set({ settings }, () => showToast());
   }
