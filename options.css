@@ -212,7 +212,6 @@ select:focus {
 }
 
 input[type="range"] {
-  -webkit-appearance: none;
   width: 100%;
   max-width: 280px;
   height: 4px;
@@ -224,7 +223,6 @@ input[type="range"] {
 }
 
 input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
   width: 16px;
   height: 16px;
   border-radius: 50%;
