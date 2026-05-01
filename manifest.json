@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "QuickLaunch",
+  "version": "1.0",
+  "description": "Your favorite websites, just a click away.",
+  "permissions": [
+    "storage",
+    "tabs",
+    "favicon"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "128": "icon.png"
+    }
+  },
+  "options_page": "options.html",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "128": "icon.png"
+  }
+}
