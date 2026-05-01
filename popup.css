@@ -45,9 +45,10 @@ body {
 #app-container {
   display: flex;
   flex-direction: column;
-  height: 560px; /* Fixed height for consistent popup experience */
+  height: auto;
   max-height: 560px;
 }
+
 
 
 /* When this class is applied, it flips the layout instantly */
