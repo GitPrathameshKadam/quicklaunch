@@ -233,9 +233,9 @@ document.addEventListener('DOMContentLoaded', () => {
       items[focusedIndex].focus();
     }
 
-    // Hot-key launch (1-9) when not typing in search
+    // Hot-key launch (1-9)
     const num = parseInt(e.key);
-    if (!isNaN(num) && num >= 1 && num <= 9 && document.activeElement !== searchInput && settings.hotkeyAction !== 'type') {
+    if (!isNaN(num) && num >= 1 && num <= 9 && settings.hotkeyAction !== 'type') {
       const itemsToLaunch = searchInput.value.trim() === '' ? shortcuts : items; // items is from the filtered list in renderGrid, but wait
       // Actually, use the same logic as renderGrid to find the target shortcut
       const maxItems = settings.rows * settings.cols;
