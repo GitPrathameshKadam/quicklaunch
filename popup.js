@@ -191,9 +191,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (query === '') {
       renderGrid(shortcuts);
     } else {
-      const filtered = shortcuts.filter(s =>
-        s.title.toLowerCase().includes(query) || s.url.toLowerCase().includes(query)
-      );
+      const filtered = shortcuts.filter((s, index) => {
+        const isHotkeyMatch = index < 9 && (index + 1).toString() === query;
+        return s.title.toLowerCase().includes(query) || s.url.toLowerCase().includes(query) || isHotkeyMatch;
+      });
       renderGrid(filtered);
     }
   });
