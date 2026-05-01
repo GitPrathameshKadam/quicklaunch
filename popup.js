@@ -157,6 +157,14 @@ document.addEventListener('DOMContentLoaded', () => {
       title.textContent = shortcut.title;
       title.style.fontSize = `${settings.fontSize}px`;
 
+      // Hotkey badge (1-9)
+      if (i < 9) {
+        const badge = document.createElement('div');
+        badge.className = 'hotkey-badge';
+        badge.textContent = i + 1;
+        a.appendChild(badge);
+      }
+
       a.appendChild(iconWrapper);
       a.appendChild(title);
       gridContainer.appendChild(a);
@@ -222,6 +230,25 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       items[focusedIndex].focus();
+    }
+
+    // Hot-key launch (1-9) when not typing in search
+    const num = parseInt(e.key);
+    if (!isNaN(num) && num >= 1 && num <= 9 && document.activeElement !== searchInput) {
+      const itemsToLaunch = searchInput.value.trim() === '' ? shortcuts : items; // items is from the filtered list in renderGrid, but wait
+      // Actually, use the same logic as renderGrid to find the target shortcut
+      const maxItems = settings.rows * settings.cols;
+      const data = searchInput.value.trim() === '' ? shortcuts.slice(0, maxItems) : shortcuts.filter(s => 
+        s.title.toLowerCase().includes(searchInput.value.toLowerCase().trim()) || 
+        s.url.toLowerCase().includes(searchInput.value.toLowerCase().trim())
+      );
+
+      if (num <= data.length) {
+        e.preventDefault();
+        openShortcut(data[num - 1].url);
+        window.close();
+        return;
+      }
     }
 
     // Typing anywhere refocuses search

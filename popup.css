@@ -176,6 +176,35 @@ body {
   box-shadow: 0 0 0 2px var(--accent-color);
 }
 
+.hotkey-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background-color: var(--surface-color);
+  color: var(--text-secondary);
+  font-size: 9px;
+  font-weight: 700;
+  width: 15px;
+  height: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  pointer-events: none;
+  opacity: 0.5;
+  z-index: 5;
+  transition: all 0.2s ease;
+}
+
+.shortcut-item:hover .hotkey-badge {
+  opacity: 1;
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+  transform: scale(1.1);
+}
+
+
 .icon-wrapper {
   width: var(--icon-size);
   height: var(--icon-size);
