@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let shortcuts = [];
   let currentTabInfo = null;
   let focusedIndex = -1;
+  let dragSrcIndex = null;
 
   // ── Apply theme (supports 'system') ──────────────────────────────────────
   function applyTheme(theme) {
@@ -164,6 +165,58 @@ document.addEventListener('DOMContentLoaded', () => {
         badge.className = 'hotkey-badge';
         badge.textContent = i + 1;
         a.appendChild(badge);
+      }
+
+      // Drag and Drop (only allow if not searching)
+      const isSearching = searchInput.value.trim() !== '';
+      a.draggable = !isSearching;
+
+      if (!isSearching) {
+        a.addEventListener('dragstart', (e) => {
+          dragSrcIndex = parseInt(a.dataset.index);
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', dragSrcIndex);
+          a.classList.add('dragging');
+        });
+
+        a.addEventListener('dragover', (e) => {
+          e.preventDefault(); // Necessary to allow dropping
+          e.dataTransfer.dropEffect = 'move';
+          return false;
+        });
+
+        a.addEventListener('dragenter', (e) => {
+          a.classList.add('drag-over');
+        });
+
+        a.addEventListener('dragleave', (e) => {
+          a.classList.remove('drag-over');
+        });
+
+        a.addEventListener('drop', (e) => {
+          e.stopPropagation();
+          const targetIndex = parseInt(a.dataset.index);
+          
+          if (dragSrcIndex !== null && dragSrcIndex !== targetIndex) {
+            // Remove the dragged item from the array
+            const draggedItem = shortcuts.splice(dragSrcIndex, 1)[0];
+            // Insert it at the drop target index
+            shortcuts.splice(targetIndex, 0, draggedItem);
+            
+            // Save to local storage and re-render
+            chrome.storage.local.set({ shortcuts }, () => {
+              renderGrid(shortcuts);
+            });
+          }
+          return false;
+        });
+
+        a.addEventListener('dragend', (e) => {
+          a.classList.remove('dragging');
+          document.querySelectorAll('.shortcut-item').forEach(item => {
+            item.classList.remove('drag-over');
+          });
+        });
       }
 
       a.appendChild(iconWrapper);
