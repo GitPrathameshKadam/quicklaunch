@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🚀 QuickLaunch - Customizable Shortcut Extension
 
 QuickLaunch is a premium, highly configurable Chrome extension that transforms your new tab or popup into a streamlined, beautiful grid of your favorite website shortcuts.
@@ -60,3 +61,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ---
 
 *Built with ❤️ for a faster browsing experience.*
+=======
+# quicklaunch
+>>>>>>> b169a150b014a9a18b87485d5f514406998a2c9c
