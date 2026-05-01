@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # 🚀 QuickLaunch - Customizable Shortcut Extension
 
 QuickLaunch is a premium, highly configurable Chrome extension that transforms your new tab or popup into a streamlined, beautiful grid of your favorite website shortcuts.
@@ -18,6 +17,7 @@ QuickLaunch is a premium, highly configurable Chrome extension that transforms y
 ## 🛠️ Installation
 
 ### For Developers (Manual Load)
+
 1. Download or clone this repository.
 2. Open Chrome and navigate to `chrome://extensions/`.
 3. Enable **Developer mode** in the top right corner.
@@ -33,7 +33,7 @@ QuickLaunch is a premium, highly configurable Chrome extension that transforms y
 ## ⚙️ Configuration Options
 
 - **Grid Layout**: Set custom Rows (1-10) and Columns (1-10).
-- **Appearance**: 
+- **Appearance**:
   - Toggle Shortcut Titles.
   - Custom Font Size (10px - 20px).
   - Adjustable Grid Gap (8px - 32px).
@@ -60,7 +60,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-*Built with ❤️ for a faster browsing experience.*
-=======
-# quicklaunch
->>>>>>> b169a150b014a9a18b87485d5f514406998a2c9c
+_Built with ❤️ for a faster browsing experience._

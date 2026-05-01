@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const iconSizeControl = document.getElementById('iconSizeControl');
   const accentColorInput= document.getElementById('accentColor');
   const resetAccentBtn  = document.getElementById('resetAccentBtn');
-  const openInNewTabCb  = document.getElementById('openInNewTab');
+  const openTabSelect   = document.getElementById('open-tab');
   const searchPositionControl = document.getElementById('searchPositionControl');
 
   const shortcutsList   = document.getElementById('shortcutsList');
@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fontSizeInput.value  = settings.fontSize;
     gridGapInput.value   = settings.gridGap;
     popupWidthInput.value= settings.popupWidth;
-    openInNewTabCb.checked = settings.openInNewTab !== false;
+    openTabSelect.value    = settings.openInNewTab ? 'new' : 'current';
 
     // Theme segmented control
     setSegmented(themeControl, settings.theme || 'dark');
@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
   colsInput.addEventListener('change', saveSettings);
 
   showTitlesCb.addEventListener('change', () => { updatePreview(); saveSettings(); });
-  openInNewTabCb.addEventListener('change', saveSettings);
+  openTabSelect.addEventListener('change', saveSettings);
 
   // ── Save settings ─────────────────────────────────────────────────────────
   function saveSettings() {
@@ -225,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
       iconShape: settings.iconShape,
       theme: settings.theme,
       accentColor: settings.accentColor,
-      openInNewTab: openInNewTabCb.checked,
+      openInNewTab: openTabSelect.value === 'new',
     };
     chrome.storage.local.set({ settings }, () => showToast());
   }

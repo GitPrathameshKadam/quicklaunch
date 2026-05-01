@@ -189,11 +189,14 @@
       <h2>Behavior</h2>
       <p class="subtitle">Control how QuickLaunch opens links and behaves.</p>
 
-      <div class="setting-group checkbox-group">
-        <input type="checkbox" id="openInNewTab" checked>
-        <label for="openInNewTab">Open shortcuts in a new tab</label>
+      <div class="setting-group">
+        <label for="open-tab">Open Behavior</label>
+        <select id="open-tab">
+          <option value="new">Open in new tab</option>
+          <option value="current">Open in current tab</option>
+        </select>
       </div>
-      <p class="hint">When unchecked, shortcuts open in the current tab.</p>
+      <p class="hint">Choose whether shortcuts should open in a new tab or replace the current page.</p>
 
       <div class="divider"></div>
 
