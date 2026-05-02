@@ -1,11 +1,20 @@
 {
   "manifest_version": 3,
   "name": "QuickLaunch",
-  "version": "2.0",
+  "version": "2.2",
   "description": "Quick access to your favorite websites with workspaces and hotkeys.",
   "action": {
     "default_popup": "popup.html",
-    "default_icon": "icon.png"
+    "default_icon": {
+      "16": "assets/icon128.png",
+      "48": "assets/icon128.png",
+      "128": "assets/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "assets/icon128.png",
+    "48": "assets/icon128.png",
+    "128": "assets/icon128.png"
   },
   "options_page": "options.html",
   "permissions": [

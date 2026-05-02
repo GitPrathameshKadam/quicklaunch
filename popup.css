@@ -1,38 +1,45 @@
-/* popup.css */
+/* popup.css — QuickLaunch v2.2 */
 
 :root {
-  --bg-color: #202124;
-  --surface-color: #2b2c31;
-  --surface-hover: #3c4043;
-  --text-primary: #e8eaed;
-  --text-secondary: #9aa0a6;
-  --border-color: #3c4043;
-  --accent-color: #8ab4f8;
-  --accent-hover: #aecbfa;
+  --bg-color:        #202124;
+  --surface-color:   #2b2c31;
+  --surface-hover:   #3c4043;
+  --text-primary:    #e8eaed;
+  --text-secondary:  #9aa0a6;
+  --border-color:    #3c4043;
+  --accent-color:    #8ab4f8;
+  --accent-hover:    #aecbfa;
   --icon-bg-default: #3c4043;
-  --grid-gap: 16px;
-  --icon-size: 48px;
-  --icon-img-size: 28px;
-  --icon-radius: 50%;
+  --danger-color:    #f28b82;
+  --success-color:   #34a853;
+  --info-color:      #8ab4f8;
+  --edit-banner-bg:  rgba(138,180,248,0.10);
+  --rename-bg:       rgba(138,180,248,0.12);
+  --grid-gap:        16px;
+  --icon-size:       48px;
+  --icon-img-size:   28px;
+  --icon-radius:     50%;
 }
 
 :root[data-theme="light"] {
-  --bg-color: #f8f9fa;
-  --surface-color: #ffffff;
-  --surface-hover: #f1f3f4;
-  --text-primary: #202124;
-  --text-secondary: #5f6368;
-  --border-color: #dadce0;
-  --accent-color: #1a73e8;
-  --accent-hover: #1557b0;
+  --bg-color:        #f8f9fa;
+  --surface-color:   #ffffff;
+  --surface-hover:   #f1f3f4;
+  --text-primary:    #202124;
+  --text-secondary:  #5f6368;
+  --border-color:    #dadce0;
+  --accent-color:    #1a73e8;
+  --accent-hover:    #1557b0;
   --icon-bg-default: #e8eaed;
+  --danger-color:    #d93025;
+  --edit-banner-bg:  rgba(26,115,232,0.08);
+  --rename-bg:       rgba(26,115,232,0.08);
 }
 
 body {
-  margin: 0;
-  padding: 0;
+  margin: 0; padding: 0;
   width: 380px;
-  max-height: 560px;
+  max-height: 600px;
   background-color: var(--bg-color);
   color: var(--text-primary);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -40,30 +47,19 @@ body {
   position: relative;
 }
 
-
-/* Make the main container a flex column */
 #app-container {
   display: flex;
   flex-direction: column;
   height: auto;
-  max-height: 560px;
+  max-height: 600px;
 }
 
-
-
-/* When this class is applied, it flips the layout instantly */
-#app-container.search-bottom {
-  flex-direction: column-reverse;
-}
-
-/* Adjust borders so it looks clean on the bottom */
+#app-container.search-bottom { flex-direction: column-reverse; }
 #app-container.search-bottom #header-bar {
   border-bottom: none;
   border-top: 1px solid var(--border-color);
 }
 
-
-/* Custom Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--surface-hover); border-radius: 10px; }
@@ -76,9 +72,8 @@ body {
   padding: 10px 12px;
   border-bottom: 1px solid var(--border-color);
   background-color: var(--bg-color);
-
   z-index: 10;
-  gap: 4px;
+  gap: 2px;
 }
 
 .search-container {
@@ -91,8 +86,7 @@ body {
 .search-icon {
   position: absolute;
   left: 10px;
-  width: 16px;
-  height: 16px;
+  width: 16px; height: 16px;
   color: var(--text-secondary);
   pointer-events: none;
 }
@@ -116,12 +110,10 @@ body {
   box-shadow: 0 0 0 1px var(--accent-color);
 }
 
-#searchInput::placeholder {
-  color: var(--text-secondary);
-}
+#searchInput::placeholder { color: var(--text-secondary); }
 
-#quickAddBtn,
-#settingsBtn {
+/* ── Header icon buttons ── */
+#quickAddBtn, #sortBtn, #editBtn, #settingsBtn {
   background: none;
   border: none;
   color: var(--text-secondary);
@@ -133,18 +125,91 @@ body {
   justify-content: center;
   transition: all 0.2s ease;
   flex-shrink: 0;
+  position: relative;
 }
 
-#quickAddBtn:hover,
-#settingsBtn:hover {
+#quickAddBtn:hover, #sortBtn:hover, #editBtn:hover, #settingsBtn:hover {
   background-color: var(--surface-hover);
   color: var(--text-primary);
 }
 
-#quickAddBtn svg,
-#settingsBtn svg {
-  width: 18px;
-  height: 18px;
+#quickAddBtn svg, #sortBtn svg, #editBtn svg, #settingsBtn svg {
+  width: 17px; height: 17px;
+}
+
+/* Edit active */
+#editBtn.active {
+  color: var(--accent-color);
+  background-color: var(--edit-banner-bg);
+}
+#editBtn.active:hover { color: var(--accent-hover); }
+
+/* Sort mode states — colour the icon when non-manual */
+#sortBtn[data-mode="most-used"] { color: var(--accent-color); }
+#sortBtn[data-mode="az"]        { color: var(--accent-color); }
+
+/* Small dot indicator on sort button when active sort */
+#sortBtn[data-mode="most-used"]::after,
+#sortBtn[data-mode="az"]::after {
+  content: '';
+  position: absolute;
+  top: 5px; right: 5px;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--accent-color);
+}
+
+/* ── Edit mode banner ── */
+.edit-banner {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 10px 5px 14px;
+  background-color: var(--edit-banner-bg);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--accent-color);
+  font-size: 10.5px;
+  font-weight: 500;
+  gap: 8px;
+}
+
+.edit-banner-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.edit-banner-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.banner-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: 1px solid var(--accent-color);
+  color: var(--accent-color);
+  border-radius: 12px;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.banner-action-btn:hover {
+  background-color: var(--accent-color);
+  color: var(--bg-color);
 }
 
 /* ── Grid ── */
@@ -155,7 +220,6 @@ body {
   flex: 1;
   overflow-y: auto;
 }
-
 
 .shortcut-item {
   display: flex;
@@ -170,12 +234,19 @@ body {
   outline: none;
   position: relative;
   min-width: 0;
+  user-select: none;
 }
 
 .shortcut-item:hover {
   background-color: var(--surface-hover);
   transform: translateY(-2px);
 }
+
+.shortcut-item.edit-mode {
+  cursor: default;
+}
+.shortcut-item.edit-mode:hover { transform: none; }
+.shortcut-item.draggable { cursor: grab; }
 
 .shortcut-item:focus-visible {
   background-color: var(--surface-hover);
@@ -185,6 +256,7 @@ body {
 .shortcut-item.dragging {
   opacity: 0.4;
   transform: scale(0.95);
+  cursor: grabbing;
 }
 
 .shortcut-item.drag-over {
@@ -192,19 +264,15 @@ body {
   box-shadow: 0 0 0 2px var(--accent-color);
 }
 
+/* ── Hotkey badge ── */
 .hotkey-badge {
   position: absolute;
-  top: 6px;
-  left: 6px;
+  top: 6px; left: 6px;
   background-color: var(--surface-color);
   color: var(--text-secondary);
-  font-size: 9px;
-  font-weight: 700;
-  width: 15px;
-  height: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-size: 9px; font-weight: 700;
+  width: 15px; height: 15px;
+  display: flex; align-items: center; justify-content: center;
   border-radius: 4px;
   border: 1px solid var(--border-color);
   pointer-events: none;
@@ -220,15 +288,56 @@ body {
   transform: scale(1.1);
 }
 
+/* ── Usage pip (top-right, shown in most-used sort mode) ── */
+.usage-pip {
+  position: absolute;
+  top: 6px; right: 6px;
+  background-color: var(--accent-color);
+  color: var(--bg-color);
+  font-size: 8px; font-weight: 700;
+  min-width: 14px; height: 14px;
+  padding: 0 3px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 7px;
+  pointer-events: none;
+  opacity: 0.85;
+  z-index: 5;
+  box-sizing: border-box;
+}
 
+/* ── Remove button ── */
+.remove-btn {
+  position: absolute;
+  top: 4px; left: 4px;
+  background-color: var(--surface-color);
+  color: var(--danger-color);
+  font-size: 9px; font-weight: 900;
+  width: 17px; height: 17px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  border: 1.5px solid var(--danger-color);
+  padding: 0;
+  cursor: pointer;
+  z-index: 10;
+  opacity: 0.8;
+  transition: all 0.15s ease;
+  line-height: 1;
+}
+
+.remove-btn:hover {
+  opacity: 1;
+  background-color: var(--danger-color);
+  color: var(--bg-color);
+  transform: scale(1.15);
+}
+
+/* ── Icon wrapper ── */
 .icon-wrapper {
   width: var(--icon-size);
   height: var(--icon-size);
   border-radius: var(--icon-radius);
   background-color: var(--surface-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   margin-bottom: 6px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.2);
   overflow: hidden;
@@ -250,6 +359,17 @@ body {
   line-height: 1;
 }
 
+/* Jiggle in edit mode */
+@keyframes jiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25%       { transform: rotate(-1.5deg); }
+  75%       { transform: rotate(1.5deg); }
+}
+
+.shortcut-item.edit-mode .icon-wrapper { animation: jiggle 0.6s ease-in-out infinite; }
+.shortcut-item.dragging  .icon-wrapper { animation: none; }
+
+/* ── Shortcut title ── */
 .shortcut-title {
   font-size: 12px;
   text-align: center;
@@ -260,14 +380,35 @@ body {
   padding: 0 2px;
   box-sizing: border-box;
   color: var(--text-secondary);
+  border-radius: 4px;
+  transition: background-color 0.15s, color 0.15s;
 }
 
-.shortcut-item:hover .shortcut-title {
+.shortcut-item:hover .shortcut-title { color: var(--text-primary); }
+.hide-titles .shortcut-title  { display: none; }
+.hide-titles .icon-wrapper    { margin-bottom: 0; }
+
+/* Rename hint in edit mode */
+.shortcut-title.renameable {
+  cursor: text;
+}
+.shortcut-title.renameable:hover {
+  background-color: var(--rename-bg);
   color: var(--text-primary);
 }
 
-.hide-titles .shortcut-title { display: none; }
-.hide-titles .icon-wrapper { margin-bottom: 0; }
+/* Active rename state */
+.shortcut-title.renaming {
+  outline: 1.5px solid var(--accent-color);
+  background-color: var(--rename-bg);
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  cursor: text;
+  padding: 0 4px;
+  min-width: 40px;
+}
 
 /* ── Empty state ── */
 .empty-state {
@@ -311,92 +452,65 @@ body {
 
 @keyframes slideUp {
   from { transform: translateY(12px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  to   { transform: translateY(0);    opacity: 1; }
 }
 
-.qa-content {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.qa-icon {
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
-  flex-shrink: 0;
-}
-
-.qa-info {
-  min-width: 0;
-}
+.qa-content { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.qa-icon    { width: 20px; height: 20px; border-radius: 4px; flex-shrink: 0; }
+.qa-info    { min-width: 0; }
 
 .qa-title {
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 13px; font-weight: 500;
   color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
 .qa-url {
   font-size: 11px;
   color: var(--text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
-.qa-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
+.qa-actions { display: flex; justify-content: flex-end; gap: 8px; }
 
 .qa-btn {
   border: none;
   border-radius: 6px;
   padding: 5px 12px;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 12px; font-weight: 500;
   cursor: pointer;
   transition: opacity 0.2s;
+  font-family: inherit;
 }
 
-.qa-btn.primary {
-  background-color: var(--accent-color);
-  color: #000;
-}
+.qa-btn.primary   { background-color: var(--accent-color); color: #000; }
+.qa-btn.secondary { background-color: var(--surface-hover); color: var(--text-primary); }
+.qa-btn:hover     { opacity: 0.85; }
 
-.qa-btn.secondary {
-  background-color: var(--surface-hover);
-  color: var(--text-primary);
-}
-
-.qa-btn:hover { opacity: 0.85; }
-
-/* ── Popup toast notification ── */
+/* ── Popup toast ── */
 .popup-toast {
   position: fixed;
   bottom: 12px;
   left: 50%;
   transform: translateX(-50%) translateY(40px);
-  background-color: #34a853;
+  background-color: var(--success-color);
   color: #fff;
   padding: 6px 14px;
   border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 12px; font-weight: 500;
   opacity: 0;
   transition: all 0.25s ease;
   pointer-events: none;
   white-space: nowrap;
   z-index: 100;
+  max-width: 320px;
+  text-align: center;
 }
 
 .popup-toast.show {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
+
+.popup-toast[data-type="error"] { background-color: var(--danger-color); }
+.popup-toast[data-type="info"]  { background-color: var(--info-color); color: #000; }
