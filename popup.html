@@ -4,7 +4,10 @@
   <meta charset="UTF-8">
   <title>QuickLaunch</title>
   <link rel="stylesheet" href="popup.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="assets/libs/atom-one-dark.min.css">
+  <script src="assets/libs/marked.min.js"></script>
+  <script src="assets/libs/highlight.min.js"></script>
 </head>
 <body>
   <div id="app-container">
@@ -15,6 +18,9 @@
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
         <input type="text" id="searchInput" placeholder="Search and launch" autocomplete="off">
+        <button id="searchClearBtn" class="search-clear-btn" aria-label="Clear search" style="display:none;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
 
       <!-- Add current tab -->
@@ -22,6 +28,15 @@
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <line x1="12" y1="5" x2="12" y2="19"></line>
           <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+      </button>
+
+      <!-- Open workspace as tab group -->
+      <button id="openGroupBtn" title="Open all shortcuts in a tab group" aria-label="Open all shortcuts in a tab group">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
         </svg>
       </button>
 
@@ -53,6 +68,14 @@
       </button>
     </div>
 
+    <!-- Mode Switcher -->
+    <div class="mode-switcher">
+      <button id="modeShortcutsBtn" class="mode-btn active">Shortcuts</button>
+      <button id="modeSnippetsBtn" class="mode-btn">Snippets</button>
+    </div>
+
+    <!-- Workspace Tabs relocated to bottom -->
+
     <!-- Edit mode banner -->
     <div id="editBanner" class="edit-banner" style="display:none;">
       <div class="edit-banner-label">
@@ -60,10 +83,10 @@
           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
         </svg>
-        Drag to reorder &bull; &#10005; remove &bull; tap title to rename
+        <span id="editBannerText">Drag to reorder &bull; &#10005; remove &bull; tap title to rename</span>
       </div>
       <div class="edit-banner-actions">
-        <button id="exportBtn" class="banner-action-btn" title="Export shortcuts as JSON">
+        <button id="exportBtn" class="banner-action-btn" title="Export data as JSON">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
             <polyline points="7 10 12 15 17 10"></polyline>
@@ -71,7 +94,7 @@
           </svg>
           Export
         </button>
-        <button id="importBtn" class="banner-action-btn" title="Import shortcuts from JSON">
+        <button id="importBtn" class="banner-action-btn" title="Import data from JSON">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
             <polyline points="17 8 12 3 7 8"></polyline>
@@ -84,8 +107,13 @@
       </div>
     </div>
 
+    <!-- MAIN VIEWS -->
     <div id="gridContainer" class="grid-container">
       <!-- Grid items injected by popup.js -->
+    </div>
+
+    <div id="snippetsContainer" class="snippets-container" style="display:none;">
+      <!-- Snippet items injected by popup.js -->
     </div>
 
     <div id="emptyState" class="empty-state" style="display: none;">
@@ -93,8 +121,16 @@
         <rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect>
         <rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect>
       </svg>
-      <p>No shortcuts yet.</p>
-      <button id="addFirstShortcutBtn" class="primary-btn">Add Shortcut</button>
+      <p>No shortcuts yet. Quick start:</p>
+      
+      <div class="quick-start-chips">
+        <button class="quick-start-chip" data-title="Google" data-url="https://google.com">Google</button>
+        <button class="quick-start-chip" data-title="YouTube" data-url="https://youtube.com">YouTube</button>
+        <button class="quick-start-chip" data-title="GitHub" data-url="https://github.com">GitHub</button>
+        <button class="quick-start-chip" data-title="ChatGPT" data-url="https://chatgpt.com">ChatGPT</button>
+      </div>
+
+      <button id="addFirstShortcutBtn" class="primary-btn" style="margin-top: 16px;">+ Create Custom</button>
     </div>
 
     <!-- Quick Add Toast -->
@@ -111,8 +147,53 @@
         <button id="qaConfirmBtn" class="qa-btn primary">Add</button>
       </div>
     </div>
+
+    <!-- Snippet Edit Sheet -->
+    <div id="snippetEditSheet" class="edit-sheet" style="display:none;">
+      <div class="edit-sheet-content">
+        <div class="edit-sheet-field">
+          <label for="snippetEditTitle">Snippet Title</label>
+          <input type="text" id="snippetEditTitle" placeholder="e.g., Code Review Prompt" autocomplete="off">
+        </div>
+        <div class="edit-sheet-field">
+          <label for="snippetEditTags">Tags (comma separated)</label>
+          <input type="text" id="snippetEditTags" placeholder="e.g., code, review, sql" autocomplete="off">
+        </div>
+        <div class="edit-sheet-field">
+          <label for="snippetEditText">Text / Markdown Content</label>
+          <textarea id="snippetEditText" placeholder="Paste your text or markdown here..." rows="4"></textarea>
+          <div class="field-hint">Placeholders filled on copy: {{clipboard}}, {{date}}, {{time}}, {{datetime}}</div>
+        </div>
+      </div>
+      <div class="edit-sheet-actions">
+        <button id="snippetEditCancel" class="qa-btn secondary">Cancel</button>
+        <button id="snippetEditSave" class="qa-btn primary">Save</button>
+      </div>
+    </div>
+
+    <!-- Edit Shortcut Sheet -->
+    <div id="editShortcutSheet" class="edit-sheet" style="display:none;">
+      <div class="edit-sheet-content">
+        <div class="edit-sheet-field">
+          <label for="editSheetTitle">Title</label>
+          <input type="text" id="editSheetTitle" placeholder="Shortcut title" autocomplete="off">
+        </div>
+        <div class="edit-sheet-field">
+          <label for="editSheetUrl">URL</label>
+          <input type="url" id="editSheetUrl" placeholder="https://example.com" autocomplete="off">
+        </div>
+      </div>
+      <div class="edit-sheet-actions">
+        <button id="editSheetCancel" class="qa-btn secondary">Cancel</button>
+        <button id="editSheetSave" class="qa-btn primary">Save</button>
+      </div>
+    </div>
+
+    <!-- Workspace Tabs (Only for Shortcuts mode) -->
+    <div id="workspaceTabs" class="workspace-tabs" style="display:none;"></div>
   </div>
 
+  <script src="backup.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

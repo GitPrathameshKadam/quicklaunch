@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>QuickLaunch - Settings</title>
   <link rel="stylesheet" href="options.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
 </head>
 <body>
   <div class="sidebar">
@@ -29,6 +29,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
         Import / Export
       </a>
+      <a href="#snippets" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Snippets
+      </a>
     </nav>
   </div>
 
@@ -41,18 +45,31 @@
 
       <div class="settings-row">
         <div class="setting-group">
-          <label for="rows">Rows</label>
-          <input type="number" id="rows" min="1" max="10" value="4">
+          <label for="rows">Rows (Max 20)</label>
+          <input type="number" id="rows" min="1" max="20" value="4">
         </div>
         <div class="setting-group">
-          <label for="cols">Columns</label>
+          <label for="cols">Columns (Max 10)</label>
           <input type="number" id="cols" min="1" max="10" value="4">
         </div>
       </div>
 
       <div class="divider"></div>
+      
+      <h2>Workspaces</h2>
+      <p class="subtitle">Organize your shortcuts into tabs. Drag to reorder. Deleting a workspace moves its shortcuts to Main.</p>
+      
+      <div id="workspacesList" class="shortcuts-list" style="margin-bottom: 12px;"></div>
+      
+      <div class="url-input-row" style="max-width: 340px;">
+        <input type="text" id="newWsInput" placeholder="New workspace name..." maxlength="20">
+        <button id="addWsBtn" class="primary-btn">Add Workspace</button>
+      </div>
+
+      <div class="divider"></div>
+
       <h2>Shortcuts</h2>
-      <p class="subtitle">Drag to reorder. Icons are fetched automatically when you visit the site.</p>
+      <p class="subtitle">Drag to reorder. Icons come from Chrome's favicon cache after you visit a site.</p>
 
       <div class="shortcuts-list-header">
         <span class="header-empty"></span>
@@ -63,6 +80,21 @@
 
       <div id="shortcutsList" class="shortcuts-list"></div>
       <button id="addShortcutBtn" class="primary-btn mt-16">+ Add Shortcut</button>
+    </section>
+
+    <!-- ── Snippets ── -->
+    <section id="snippets" style="display:none;">
+      <h2>Snippets</h2>
+      <p class="subtitle">Manage your saved text blocks and AI prompts.</p>
+
+      <div class="shortcuts-list-header" style="grid-template-columns: 200px 1fr 60px;">
+        <span>Title</span>
+        <span>Text Preview</span>
+        <span>Actions</span>
+      </div>
+
+      <div id="snippetsList" class="shortcuts-list"></div>
+      <button id="addSnippetBtn" class="primary-btn mt-16">+ Add Snippet</button>
     </section>
 
     <!-- ── Appearance ── -->
@@ -94,9 +126,11 @@
         <label for="popupWidth">Popup Width — <span id="popupWidthDisplay">380px</span></label>
         <div class="slider-row">
           <span class="slider-label">Compact</span>
+          <!-- Clamped Max explicitly to 560 -->
           <input type="range" id="popupWidth" min="300" max="560" step="10" value="380">
           <span class="slider-label">Wide</span>
         </div>
+        <p class="hint">Max 560px to prevent forced horizontal scrollbars in the extension popup.</p>
       </div>
 
       <!-- Icon shape -->
@@ -139,7 +173,7 @@
 
       <div class="setting-group checkbox-group">
         <input type="checkbox" id="showBadges" checked>
-        <label for="showBadges">Show hotkey badges (1-9)</label>
+        <label for="showBadges">Show hotkey badges (1-9, 0)</label>
       </div>
 
       <!-- Font size -->
@@ -205,13 +239,13 @@
       <div class="divider"></div>
 
       <div class="setting-group">
-        <label for="hotkeyAction">Number Key Behavior (1-9)</label>
+        <label for="hotkeyAction">Number Key Behavior (1-9, 0)</label>
         <select id="hotkeyAction">
           <option value="launch">Launch Directly</option>
           <option value="type">Type in Search</option>
         </select>
       </div>
-      <p class="hint">Choose whether pressing 1-9 instantly opens the shortcut or types the number in the search bar.</p>
+      <p class="hint">Choose whether pressing 1-9, 0 instantly opens the shortcut or types the number in the search bar.</p>
 
       <div class="divider"></div>
 
@@ -222,6 +256,22 @@
           <button data-value="bottom" class="seg-btn">Bottom</button>
         </div>
         <p class="hint">Choose where the search and settings bar should appear in the popup.</p>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="setting-group">
+        <label for="clipboardReadToggle">
+          <input type="checkbox" id="clipboardReadToggle">
+          Allow reading the clipboard
+        </label>
+        <p class="hint">
+          Only needed for the <code>{{clipboard}}</code> placeholder in snippets, which
+          pastes your current clipboard contents into the copied text. QuickLaunch never
+          stores or transmits clipboard data. Leave this off and
+          <code>{{clipboard}}</code> expands to nothing.
+        </p>
+        <p class="hint"><a href="privacy.html" target="_blank" rel="noopener">Read the privacy policy</a></p>
       </div>
     </section>
 
@@ -259,8 +309,11 @@
 
       <div class="danger-zone">
         <h3>Danger Zone</h3>
-        <button id="resetAllBtn" class="danger-btn">Reset All Data</button>
-        <p class="hint">This will permanently delete all shortcuts and reset settings to defaults.</p>
+        <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+          <button id="resetUsageBtn" class="danger-btn">Reset Usage Counts</button>
+          <button id="resetAllBtn" class="danger-btn">Reset All Data</button>
+        </div>
+        <p class="hint">Resetting usage counts clears data for "Most-Used" sorting. Resetting all data permanently deletes all shortcuts and settings.</p>
       </div>
     </section>
 
@@ -280,7 +333,7 @@
         <label for="shortcutUrl">URL</label>
         <div class="url-input-row">
           <input type="url" id="shortcutUrl" placeholder="https://github.com">
-          <button id="fetchFaviconBtn" class="icon-btn" title="Fetch favicon">
+          <button id="fetchFaviconBtn" class="icon-btn" title="Preview cached favicon" aria-label="Preview cached favicon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
           </button>
         </div>
@@ -288,6 +341,11 @@
       <div class="favicon-preview" id="faviconPreview" style="display:none;">
         <img id="faviconImg" width="20" height="20">
         <span id="faviconStatus"></span>
+      </div>
+      <!-- Workspace selector moved to bottom of the form block -->
+      <div class="setting-group" style="margin-top: 14px;">
+        <label for="shortcutWorkspace">Workspace</label>
+        <select id="shortcutWorkspace"></select>
       </div>
       <input type="hidden" id="editIndex">
       <input type="hidden" id="editIconData">
@@ -298,6 +356,32 @@
     </div>
   </div>
 
+  <!-- Snippet Modal -->
+  <div id="snippetModal" class="modal">
+    <div class="modal-content">
+      <h3 id="snippetModalTitle">Add Snippet</h3>
+      <div class="setting-group">
+        <label for="modalSnippetTitle">Title</label>
+        <input type="text" id="modalSnippetTitle" placeholder="e.g. Code Review Prompt">
+      </div>
+      <div class="setting-group">
+        <label for="modalSnippetTags">Tags (comma separated)</label>
+        <input type="text" id="modalSnippetTags" placeholder="e.g. prompt, python, review">
+      </div>
+      <div class="setting-group">
+        <label for="modalSnippetText">Text Content</label>
+        <textarea id="modalSnippetText" placeholder="Paste your text or prompt here..." rows="8" style="width:100%; border:1px solid var(--border-color); border-radius:6px; padding:8px; background:var(--bg-color); color:var(--text-primary); font-family:inherit; resize:vertical; outline:none; box-sizing:border-box;"></textarea>
+        <div style="font-size:11px; color:var(--text-secondary); margin-top:4px;">Placeholders filled when you copy: <code>{{clipboard}}</code>, <code>{{date}}</code>, <code>{{time}}</code>, <code>{{datetime}}</code></div>
+      </div>
+      <input type="hidden" id="editSnippetId">
+      <div class="modal-actions">
+        <button id="cancelSnippetModalBtn" class="secondary-btn">Cancel</button>
+        <button id="saveSnippetModalBtn" class="primary-btn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="backup.js"></script>
   <script src="options.js"></script>
 </body>
 </html>

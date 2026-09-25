@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuickLaunch — Privacy Policy</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      color: #202124;
+      background: #f8f9fa;
+    }
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+    header { margin-bottom: 40px; border-bottom: 1px solid #dadce0; padding-bottom: 24px; }
+    header h1 { font-size: 28px; font-weight: 700; color: #202124; }
+    header p  { color: #5f6368; font-size: 14px; margin-top: 4px; }
+    h2 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #202124;
+      margin: 32px 0 10px;
+    }
+    p  { color: #3c4043; margin-bottom: 12px; }
+    ul { padding-left: 24px; color: #3c4043; margin-bottom: 12px; }
+    ul li { margin-bottom: 6px; }
+    .highlight {
+      background: #e8f0fe;
+      border-left: 4px solid #1a73e8;
+      padding: 14px 18px;
+      border-radius: 4px;
+      margin: 16px 0 24px;
+      color: #1a1a2e;
+      font-size: 15px;
+    }
+    a { color: #1a73e8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    footer {
+      margin-top: 56px;
+      padding-top: 20px;
+      border-top: 1px solid #dadce0;
+      font-size: 13px;
+      color: #5f6368;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>QuickLaunch — Privacy Policy</h1>
+      <p>Last updated: September 2026 &nbsp;·&nbsp; Applies to QuickLaunch 2.6</p>
+    </header>
+
+    <div class="highlight">
+      <strong>Short version:</strong> QuickLaunch stores your shortcuts, snippets, and settings locally in Chrome. The developer does not receive this data.
+    </div>
+
+    <h2>1. What data QuickLaunch stores</h2>
+    <p>QuickLaunch saves the following data using Chrome's built-in <code>chrome.storage.local</code> API, which stores data <strong>only on your device</strong> and is never shared with anyone:</p>
+    <ul>
+      <li>Your shortcut titles, URLs, and favicons</li>
+      <li>Your workspace names, organisation, and last selected workspace</li>
+      <li>Your snippets (titles, text, and tags), including an unfinished new-snippet draft until you save or reset it</li>
+      <li>Your appearance and behaviour preferences (theme, grid size, hotkey settings, etc.)</li>
+      <li>Usage counts for "Most-Used" sorting (stored as URL → click count pairs)</li>
+    </ul>
+    <p>This data remains in Chrome's local extension storage until you edit it, import a replacement backup, reset the extension, or uninstall it. You can review and delete shortcuts, snippets, and usage counts in Settings. Chrome extension storage is not encrypted; do not save passwords or other secrets as snippets.</p>
+
+    <h2>2. External network requests</h2>
+    <p><strong>QuickLaunch does not send saved data to the developer, analytics services, or an icon service.</strong> When you choose to open a saved shortcut or click a link in a snippet, Chrome makes the normal request to that destination site.</p>
+    <p>Shortcut icons are read from your browser's own favicon cache using Chrome's built-in extension favicon API (<code>_favicon/</code>). These are local lookups inside your browser — no request leaves your device, and no third party is contacted or informed about which sites you have saved. Sites your browser has no cached icon for display a generic or letter-based icon instead.</p>
+    <p>Snippet previews show text and code formatting without loading remote images or other remote resources.</p>
+    <p>There are no analytics, no telemetry, no crash reporting, no advertising, and no external APIs of any kind.</p>
+    <div class="highlight">
+      <strong>Note on earlier versions:</strong> QuickLaunch 2.5 and earlier fetched icons from Google's public favicon service (<code>google.com/s2/favicons</code>), which meant Google received a request identifying a saved site's domain each time the popup displayed that icon. Version 2.6 removed this entirely and ignores any icon addresses stored by earlier versions.
+    </div>
+
+    <h2>3. Permissions used and why</h2>
+    <ul>
+      <li><strong>storage</strong> — To save and load your shortcuts, snippets, and settings locally on your device.</li>
+      <li><strong>activeTab</strong> — To read the current tab's URL and title when you click "Add current tab" or use the right-click menu. Only accessed after you explicitly trigger the extension.</li>
+      <li><strong>contextMenus</strong> — To add a right-click "Add to QuickLaunch" menu item on pages and links.</li>
+      <li><strong>notifications</strong> — To show a brief desktop notification when a shortcut is added or already exists via the right-click menu.</li>
+      <li><strong>tabGroups</strong> — To name and colour the tab group created when you click "Open all shortcuts in a tab group". The extension uses the IDs of tabs it just opened to create the group; it does not store those IDs.</li>
+      <li><strong>favicon</strong> — To read shortcut icons from your browser's local favicon cache. This performs no network request and reveals nothing to anyone outside your device.</li>
+      <li><strong>clipboardWrite</strong> — To copy snippet text to your clipboard when you click a snippet or press its number hotkey.</li>
+    </ul>
+    <p>Our use of information received from Google APIs adheres to the Chrome Web Store User Data Policy, including its Limited Use requirements. Data accessed through Chrome APIs is used only to provide QuickLaunch's described features. We do not sell user data or use it for advertising.</p>
+    <p><strong>Optional permission (off by default, never requested at install):</strong></p>
+    <ul>
+      <li><strong>clipboardRead</strong> — Used <em>only</em> when a snippet you are copying contains the <code>{{clipboard}}</code> placeholder, to insert your current clipboard text into the snippet. You must turn this on yourself under Settings → Behavior, and you can revoke it there at any time. While it is off, <code>{{clipboard}}</code> simply expands to nothing. Clipboard content is never stored, logged, or transmitted anywhere — it goes straight back onto your clipboard as part of the expanded snippet.</li>
+    </ul>
+
+    <h2>4. Data you export</h2>
+    <p>QuickLaunch lets you export your data as a JSON file saved to your device. This file is created and downloaded locally. The developer never receives a copy of your exported data.</p>
+
+    <h2>5. Children's privacy</h2>
+    <p>QuickLaunch is not directed to children under 13. It stores only the shortcuts, snippets, and preferences the user chooses to save, as described above; the developer does not receive that data.</p>
+
+    <h2>6. Changes to this policy</h2>
+    <p>If this policy changes in a way that involves new data practices, we will update the "Last updated" date above and describe the changes clearly. The extension will not begin sending data externally without an explicit update to this policy and the extension itself.</p>
+
+    <h2>7. Contact</h2>
+    <p>If you have questions about this privacy policy, please open an issue on the <a href="https://github.com/GitPrathameshKadam/quicklaunch" target="_blank" rel="noopener">QuickLaunch GitHub repository</a>.</p>
+
+    <footer>
+      This privacy policy applies to the Chrome Web Store extension only.
+    </footer>
+  </div>
+</body>
+</html>
