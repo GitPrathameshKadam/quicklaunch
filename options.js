@@ -1,4 +1,4 @@
-// options.js — QuickLaunch v2.6
+// options.js — QuickLaunch v2.7
 
 document.addEventListener('DOMContentLoaded', () => {
   // ── Element refs ──────────────────────────────────────────────────────────
@@ -16,10 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const popupWidthDisp  = document.getElementById('popupWidthDisplay');
   const themeControl    = document.getElementById('themeControl');
   const iconSizeControl = document.getElementById('iconSizeControl');
-  const accentColorInput= document.getElementById('accentColor');
-  const resetAccentBtn  = document.getElementById('resetAccentBtn');
   const openTabSelect   = document.getElementById('open-tab');
   const hotkeyActionSelect = document.getElementById('hotkeyAction');
+  const keepOpenAfterCopyCb = document.getElementById('keepOpenAfterCopy');
   const searchPositionControl = document.getElementById('searchPositionControl');
 
   const workspacesList  = document.getElementById('workspacesList');
@@ -55,21 +54,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const exportBtn       = document.getElementById('exportBtn');
   const importFile      = document.getElementById('importFile');
+  document.getElementById('importDataBtn').addEventListener('click', () => importFile.click());
   const resetUsageBtn   = document.getElementById('resetUsageBtn');
   const resetAllBtn     = document.getElementById('resetAllBtn');
 
   const toast           = document.getElementById('toast');
 
   // Preview elements
-  const previewIconEl   = document.getElementById('previewIconEl');
-  const previewTitleEl  = document.getElementById('previewTitleEl');
   const previewGrid     = document.getElementById('previewGrid');
 
   // Shape radio buttons
   const shapeRadios     = document.querySelectorAll('input[name="iconShape"]');
 
   // ── State ─────────────────────────────────────────────────────────────────
-  let settings = {
+  const defaultSettings = {
     rows: 4, cols: 4,
     showTitles: true,
     fontSize: 12, gridGap: 16,
@@ -77,27 +75,29 @@ document.addEventListener('DOMContentLoaded', () => {
     popupWidth: 380,
     iconShape: 'circle',
     iconSize: 48,
-    accentColor: '',
     openInNewTab: true,
     showBadges: true,
     hotkeyAction: 'launch',
+    keepOpenAfterCopy: false,
     workspaces: []
   };
+  let settings = { ...defaultSettings };
   let shortcuts = [];
   let snippets = [];
   let usageCounts = {};
   let sortMode = 'manual';
-
-  // ── Default accent per theme ──────────────────────────────────────────────
-  const DEFAULT_ACCENT = { dark: '#8ab4f8', light: '#1a73e8', system: '#8ab4f8' };
+  let shortcutModalOpener = null;
+  let snippetModalOpener = null;
+  let editingShortcut = null;
+  const dragRecords = new WeakMap();
 
   // ── Load storage ──────────────────────────────────────────────────────────
-  chrome.storage.local.get(['settings', 'shortcuts', 'snippets', 'searchPosition', 'usageCounts', 'sortMode'], (result) => {
+  QuickLaunchStorage.get(['settings', 'shortcuts', 'snippets', 'searchPosition', 'usageCounts', 'sortMode'], (result) => {
     settings = QuickLaunchBackup.settings(result.settings, settings);
     const workspaceIds = new Set(settings.workspaces.map(w => w.id));
     shortcuts = QuickLaunchBackup.shortcuts(result.shortcuts, workspaceIds);
     snippets = QuickLaunchBackup.snippets(result.snippets);
-    if (result.searchPosition) settings.searchPosition = result.searchPosition;
+    if (['top', 'bottom'].includes(result.searchPosition)) settings.searchPosition = result.searchPosition;
     usageCounts = QuickLaunchBackup.usageCounts(result.usageCounts);
     if (['manual', 'most-used', 'az'].includes(result.sortMode)) sortMode = result.sortMode;
 
@@ -117,6 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
     popupWidthInput.value= settings.popupWidth;
     openTabSelect.value    = settings.openInNewTab ? 'new' : 'current';
     hotkeyActionSelect.value = settings.hotkeyAction || 'launch';
+    keepOpenAfterCopyCb.checked = settings.keepOpenAfterCopy === true;
 
     // Theme segmented control
     setSegmented(themeControl, settings.theme || 'dark');
@@ -133,10 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     // Search position
     setSegmented(searchPositionControl, settings.searchPosition || 'top');
-
-    // Accent color
-    const defaultAcc = DEFAULT_ACCENT[settings.theme] || DEFAULT_ACCENT.dark;
-    accentColorInput.value = settings.accentColor || defaultAcc;
 
     updateDisplayValues();
     updatePreview();
@@ -157,8 +154,8 @@ document.addEventListener('DOMContentLoaded', () => {
     return val;
   }
 
-  rowsInput.addEventListener('change', function() { clampInput(this, 1, 20); saveSettings(); });
-  colsInput.addEventListener('change', function() { clampInput(this, 1, 10); saveSettings(); });
+  rowsInput.addEventListener('change', function() { clampInput(this, 1, 20); saveSettings(); updatePreview(); });
+  colsInput.addEventListener('change', function() { clampInput(this, 1, 10); saveSettings(); updatePreview(); });
 
   // ── Theme application ─────────────────────────────────────────────────────
   function applyThemeToPage(theme) {
@@ -177,7 +174,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Segmented controls ────────────────────────────────────────────────────
   function setSegmented(container, value) {
     container.querySelectorAll('.seg-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.value === value);
+      const selected = btn.dataset.value === value;
+      btn.classList.toggle('active', selected);
+      btn.setAttribute('aria-pressed', String(selected));
     });
   }
 
@@ -187,9 +186,6 @@ document.addEventListener('DOMContentLoaded', () => {
     settings.theme = btn.dataset.value;
     setSegmented(themeControl, settings.theme);
     applyThemeToPage(settings.theme);
-    if (!settings.accentColor) {
-      accentColorInput.value = DEFAULT_ACCENT[settings.theme] || DEFAULT_ACCENT.dark;
-    }
     saveSettings();
   });
 
@@ -207,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!btn) return;
     settings.searchPosition = btn.dataset.value;
     setSegmented(searchPositionControl, settings.searchPosition);
-    chrome.storage.local.set({ searchPosition: settings.searchPosition }, () => showToast());
+    QuickLaunchStorage.set({ searchPosition: settings.searchPosition }, () => showToast());
   });
 
   // ── Icon shape ────────────────────────────────────────────────────────────
@@ -220,21 +216,6 @@ document.addEventListener('DOMContentLoaded', () => {
       updatePreview();
       saveSettings();
     });
-  });
-
-  // ── Accent color ──────────────────────────────────────────────────────────
-  accentColorInput.addEventListener('input', () => {
-    settings.accentColor = accentColorInput.value;
-    document.documentElement.style.setProperty('--accent-color', settings.accentColor);
-    saveSettings();
-  });
-
-  resetAccentBtn.addEventListener('click', () => {
-    settings.accentColor = '';
-    accentColorInput.value = DEFAULT_ACCENT[settings.theme] || DEFAULT_ACCENT.dark;
-    document.documentElement.style.removeProperty('--accent-color');
-    saveSettings();
-    showToast('Accent color reset');
   });
 
   // ── Slider + inputs live update ───────────────────────────────────────────
@@ -251,6 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
   showBadgesCb.addEventListener('change', saveSettings);
   openTabSelect.addEventListener('change', saveSettings);
   hotkeyActionSelect.addEventListener('change', saveSettings);
+  keepOpenAfterCopyCb.addEventListener('change', saveSettings);
 
   // ── Optional clipboard permission ─────────────────────────────────────────
   // clipboardRead is optional so it costs no install-time warning. It must be
@@ -258,24 +240,41 @@ document.addEventListener('DOMContentLoaded', () => {
   // dismisses the popup before the user can answer it.
   const clipboardReadToggle = document.getElementById('clipboardReadToggle');
 
-  function refreshClipboardToggle() {
-    chrome.permissions.contains({ permissions: ['clipboardRead'] }, granted => {
-      clipboardReadToggle.checked = !!granted;
-    });
+  function refreshClipboardToggle(done = () => {}) {
+    clipboardReadToggle.disabled = true;
+    try {
+      chrome.permissions.contains({ permissions: ['clipboardRead'] }, granted => {
+        if (chrome.runtime.lastError) {
+          showToast('Could not check clipboard access. Reload Settings to try again.');
+          done(false);
+          return;
+        }
+        clipboardReadToggle.checked = !!granted;
+        clipboardReadToggle.disabled = false;
+        done(true);
+      });
+    } catch {
+      showToast('Could not check clipboard access. Reload Settings to try again.');
+      done(false);
+    }
   }
   refreshClipboardToggle();
 
   clipboardReadToggle.addEventListener('change', () => {
-    if (clipboardReadToggle.checked) {
-      chrome.permissions.request({ permissions: ['clipboardRead'] }, granted => {
-        refreshClipboardToggle();
-        showToast(granted ? 'Clipboard access enabled' : 'Clipboard access denied');
+    const enable = clipboardReadToggle.checked;
+    clipboardReadToggle.disabled = true;
+    try {
+      chrome.permissions[enable ? 'request' : 'remove']({ permissions: ['clipboardRead'] }, granted => {
+        const error = chrome.runtime.lastError;
+        refreshClipboardToggle(checked => {
+          if (!checked) return;
+          showToast(error ? 'Could not change clipboard access. Try again.'
+            : enable ? (granted ? 'Clipboard access enabled' : 'Clipboard access denied')
+            : granted ? 'Clipboard access removed' : 'Could not remove clipboard access. Try again.');
+        });
       });
-    } else {
-      chrome.permissions.remove({ permissions: ['clipboardRead'] }, () => {
-        refreshClipboardToggle();
-        showToast('Clipboard access removed');
-      });
+    } catch {
+      refreshClipboardToggle(checked => { if (checked) showToast('Could not change clipboard access. Try again.'); });
     }
   });
 
@@ -292,12 +291,12 @@ document.addEventListener('DOMContentLoaded', () => {
       iconSize: settings.iconSize,
       iconShape: settings.iconShape,
       theme: settings.theme,
-      accentColor: settings.accentColor,
       openInNewTab: openTabSelect.value === 'new',
       hotkeyAction: hotkeyActionSelect.value,
+      keepOpenAfterCopy: keepOpenAfterCopyCb.checked,
       showBadges: showBadgesCb.checked,
     };
-    chrome.storage.local.set({ settings }, () => {
+    QuickLaunchStorage.set({ settings }, () => {
       showToast(chrome.runtime.lastError ? 'Could not save settings.' : 'Saved!');
     });
   }
@@ -320,6 +319,16 @@ document.addEventListener('DOMContentLoaded', () => {
       el.style.fontSize  = `${fontSizeInput.value}px`;
     });
 
+    const width = Number(popupWidthInput.value) || 380;
+    const gap = Number(gridGapInput.value) || 16;
+    const columns = Math.max(1, Math.min(Number(colsInput.value) || 4,
+      Math.floor((width - 30 + gap) / (size + 14 + gap))));
+    // The preview remains readable in a narrow Settings panel; the summary
+    // reports the actual popup's adapted column count rather than overstating it.
+    previewGrid.style.gridTemplateColumns = `repeat(${Math.min(columns, 3)}, minmax(0, 1fr))`;
+    previewGrid.style.gap = `${Math.min(gap, 20)}px`;
+    document.getElementById('previewSummary').textContent = `${width}px popup · ${columns} ${columns === 1 ? 'column' : 'columns'}`;
+
     fontSizeDisplay.textContent = `${fontSizeInput.value}px`;
     gridGapDisplay.textContent  = `${gridGapInput.value}px`;
     popupWidthDisp.textContent  = `${popupWidthInput.value}px`;
@@ -327,12 +336,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Navigation ────────────────────────────────────────────────────────────
   navLinks.forEach(link => {
+    link.title = link.textContent.trim();
+    link.setAttribute('aria-current', link.classList.contains('active') ? 'page' : 'false');
     link.addEventListener('click', (e) => {
       e.preventDefault();
       const targetId = link.getAttribute('href').substring(1);
-      navLinks.forEach(l => l.classList.remove('active'));
+      navLinks.forEach(l => { l.classList.remove('active'); l.setAttribute('aria-current', 'false'); });
       link.classList.add('active');
+      link.setAttribute('aria-current', 'page');
       sections.forEach(s => { s.style.display = s.id === targetId ? 'block' : 'none'; });
+      document.querySelector('.content').scrollTop = 0;
     });
   });
 
@@ -342,6 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
     settings.workspaces.forEach((ws, index) => {
       const item = document.createElement('div');
       item.className = 'list-item';
+      dragRecords.set(item, ws);
       item.draggable = false;
       item.dataset.index = index;
 
@@ -360,6 +374,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const editBtn = document.createElement('button');
       editBtn.className = 'icon-btn';
       editBtn.title = 'Rename Workspace';
+      editBtn.setAttribute('aria-label', `Rename workspace ${ws.name}`);
       editBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
       editBtn.onclick = () => {
         titleDiv.contentEditable = 'true';
@@ -399,12 +414,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'icon-btn delete';
         deleteBtn.title = 'Delete';
+        deleteBtn.setAttribute('aria-label', `Delete workspace ${ws.name}`);
         deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`;
         deleteBtn.onclick = () => {
           if (confirm(`Delete workspace "${ws.name}"? Shortcuts assigned to it will be moved to the Main workspace.`)) {
             settings.workspaces = settings.workspaces.filter(w => w.id !== ws.id);
             shortcuts.forEach(s => { if (s.workspaceId === ws.id) s.workspaceId = 'w_default'; });
-            chrome.storage.local.set({ settings, shortcuts }, () => {
+            QuickLaunchStorage.set({ settings, shortcuts }, () => {
               renderWorkspacesList();
               renderShortcutsList();
               showToast('Workspace deleted');
@@ -420,7 +436,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (titleDiv.isContentEditable) return;
         e.preventDefault();
 
-        const fromIdx = parseInt(item.dataset.index);
         const startY  = e.clientY;
         let dragging  = false;
         let dropTarget = null;
@@ -492,12 +507,15 @@ document.addEventListener('DOMContentLoaded', () => {
           document.removeEventListener('pointermove', onMove);
           document.removeEventListener('pointerup', onUp);
           document.removeEventListener('pointercancel', onCancel);
+          window.removeEventListener('blur', onCancel);
           item.classList.remove('sortable-ghost');
           document.querySelectorAll('#workspacesList .list-item').forEach(el => el.classList.remove('drag-target'));
 
-          if (dragging && dropTarget) {
-            const toIdx = parseInt(dropTarget.dataset.index);
-            if (!isNaN(toIdx) && fromIdx !== toIdx) {
+          if (dragging && dropTarget && item.isConnected && dropTarget.isConnected &&
+              !QuickLaunchStorage.blocked && !QuickLaunchStorage.busy) {
+            const fromIdx = settings.workspaces.indexOf(ws);
+            const toIdx = settings.workspaces.indexOf(dragRecords.get(dropTarget));
+            if (fromIdx >= 0 && toIdx >= 0 && fromIdx !== toIdx) {
               const [moved] = settings.workspaces.splice(fromIdx, 1);
               settings.workspaces.splice(toIdx, 0, moved);
               saveSettings();
@@ -511,6 +529,7 @@ document.addEventListener('DOMContentLoaded', () => {
           document.removeEventListener('pointermove', onMove);
           document.removeEventListener('pointerup', onUp);
           document.removeEventListener('pointercancel', onCancel);
+          window.removeEventListener('blur', onCancel);
           item.classList.remove('sortable-ghost');
           document.querySelectorAll('#workspacesList .list-item').forEach(el => el.classList.remove('drag-target'));
         };
@@ -518,9 +537,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('pointermove', onMove);
         document.addEventListener('pointerup', onUp);
         document.addEventListener('pointercancel', onCancel);
+        window.addEventListener('blur', onCancel, { once: true });
       });
 
-      item.append(dragHandle, titleDiv, document.createElement('div'), actionsCol);
+      item.append(dragHandle, titleDiv, actionsCol);
       workspacesList.appendChild(item);
     });
   }
@@ -529,7 +549,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (settings.workspaces.length >= 10) return showToast('Maximum 10 workspaces allowed');
     const name = newWsInput.value.trim();
     if (!name) return;
-    settings.workspaces.push({ id: 'w_' + Date.now(), name });
+    settings.workspaces.push({ id: 'w_' + crypto.randomUUID(), name });
     newWsInput.value = '';
     saveSettings();
     renderWorkspacesList();
@@ -545,6 +565,7 @@ document.addEventListener('DOMContentLoaded', () => {
     shortcuts.forEach((shortcut, index) => {
       const item = document.createElement('div');
       item.className = 'list-item';
+      dragRecords.set(item, shortcut);
       item.dataset.index = index;
 
       const dragHandle = document.createElement('div');
@@ -596,17 +617,21 @@ document.addEventListener('DOMContentLoaded', () => {
       const editBtn = document.createElement('button');
       editBtn.className = 'icon-btn';
       editBtn.title = 'Edit';
+      editBtn.setAttribute('aria-label', `Edit ${shortcut.title}`);
       editBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
-      editBtn.onclick = () => openModal(index);
+      editBtn.onclick = () => openModal(shortcut);
 
       const deleteBtn = document.createElement('button');
       deleteBtn.className = 'icon-btn delete';
       deleteBtn.title = 'Delete';
+      deleteBtn.setAttribute('aria-label', `Delete ${shortcut.title}`);
       deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`;
       deleteBtn.onclick = () => {
+        const currentIndex = shortcuts.indexOf(shortcut);
+        if (currentIndex < 0) return;
         if (confirm(`Delete "${shortcut.title}"?`)) {
-          shortcuts.splice(index, 1);
-          chrome.storage.local.set({ shortcuts }, () => {
+          shortcuts.splice(currentIndex, 1);
+          QuickLaunchStorage.set({ shortcuts }, () => {
             renderShortcutsList();
             showToast('Shortcut deleted');
           });
@@ -623,7 +648,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.button !== 0) return;
         e.preventDefault();
 
-        const fromIdx = parseInt(item.dataset.index);
         const startY  = e.clientY;
         let dragging  = false;
         let dropTarget = null;
@@ -695,15 +719,18 @@ document.addEventListener('DOMContentLoaded', () => {
           document.removeEventListener('pointermove', onMove);
           document.removeEventListener('pointerup', onUp);
           document.removeEventListener('pointercancel', onCancel);
+          window.removeEventListener('blur', onCancel);
           item.classList.remove('sortable-ghost');
           document.querySelectorAll('#shortcutsList .list-item').forEach(el => el.classList.remove('drag-target'));
 
-          if (dragging && dropTarget) {
-            const toIdx = parseInt(dropTarget.dataset.index);
-            if (!isNaN(toIdx) && fromIdx !== toIdx) {
+          if (dragging && dropTarget && item.isConnected && dropTarget.isConnected &&
+              !QuickLaunchStorage.blocked && !QuickLaunchStorage.busy) {
+            const fromIdx = shortcuts.indexOf(shortcut);
+            const toIdx = shortcuts.indexOf(dragRecords.get(dropTarget));
+            if (fromIdx >= 0 && toIdx >= 0 && fromIdx !== toIdx) {
               const [moved] = shortcuts.splice(fromIdx, 1);
               shortcuts.splice(toIdx, 0, moved);
-              chrome.storage.local.set({ shortcuts }, renderShortcutsList);
+              QuickLaunchStorage.set({ shortcuts }, renderShortcutsList);
             }
           }
         };
@@ -713,6 +740,7 @@ document.addEventListener('DOMContentLoaded', () => {
           document.removeEventListener('pointermove', onMove);
           document.removeEventListener('pointerup', onUp);
           document.removeEventListener('pointercancel', onCancel);
+          window.removeEventListener('blur', onCancel);
           item.classList.remove('sortable-ghost');
           document.querySelectorAll('#shortcutsList .list-item').forEach(el => el.classList.remove('drag-target'));
         };
@@ -720,6 +748,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('pointermove', onMove);
         document.addEventListener('pointerup', onUp);
         document.addEventListener('pointercancel', onCancel);
+        window.addEventListener('blur', onCancel, { once: true });
       });
 
       shortcutsList.appendChild(item);
@@ -743,63 +772,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
     snippets.forEach((snippet, index) => {
       const item = document.createElement('div');
-      item.className = 'list-item';
-      item.style.gridTemplateColumns = '200px 1fr 60px';
+      item.className = 'list-item snippet-list-item';
+      dragRecords.set(item, snippet);
 
       const titleCol = document.createElement('div');
-      titleCol.style.fontWeight = '500';
+      titleCol.className = 'snippet-list-title';
       titleCol.textContent = snippet.title;
 
       const textCol = document.createElement('div');
-      textCol.style.display = 'flex';
-      textCol.style.flexDirection = 'column';
-      textCol.style.gap = '4px';
-      textCol.style.paddingRight = '12px';
+      textCol.className = 'snippet-list-preview';
       
       const textPreview = document.createElement('div');
       textPreview.style.color = 'var(--text-secondary)';
       textPreview.style.whiteSpace = 'nowrap';
       textPreview.style.overflow = 'hidden';
       textPreview.style.textOverflow = 'ellipsis';
-      textPreview.textContent = snippet.text;
+      textPreview.textContent = snippet.text.length > 240 ? snippet.text.slice(0, 240) + '…' : snippet.text;
       textCol.appendChild(textPreview);
 
       if (snippet.tags && snippet.tags.length > 0) {
         const tagsContainer = document.createElement('div');
-        tagsContainer.style.display = 'flex';
-        tagsContainer.style.gap = '4px';
+        tagsContainer.className = 'snippet-list-tags';
         snippet.tags.forEach(tag => {
           const pill = document.createElement('span');
           pill.textContent = tag;
-          pill.style.backgroundColor = 'var(--accent-color)';
-          pill.style.color = '#000';
-          pill.style.fontSize = '9px';
-          pill.style.fontWeight = '600';
-          pill.style.padding = '2px 6px';
-          pill.style.borderRadius = '10px';
-          pill.style.textTransform = 'lowercase';
+          pill.className = 'snippet-list-tag';
           tagsContainer.appendChild(pill);
         });
         textCol.appendChild(tagsContainer);
       }
 
       const actions = document.createElement('div');
-      actions.className = 'actions';
+      actions.className = 'actions snippet-list-actions';
       
       const editBtn = document.createElement('button');
       editBtn.className = 'action-btn';
       editBtn.title = 'Edit Snippet';
+      editBtn.setAttribute('aria-label', `Edit snippet ${snippet.title}`);
       editBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
       editBtn.addEventListener('click', () => openSnippetModal(snippet));
 
       const delBtn = document.createElement('button');
       delBtn.className = 'action-btn delete-btn';
       delBtn.title = 'Delete Snippet';
+      delBtn.setAttribute('aria-label', `Delete snippet ${snippet.title}`);
       delBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`;
       delBtn.addEventListener('click', () => {
+        const currentIndex = snippets.findIndex(s => s.id === snippet.id);
+        if (currentIndex < 0) return;
         if (confirm('Delete this snippet?')) {
-          snippets.splice(index, 1);
-          chrome.storage.local.set({ snippets }, renderSnippetsList);
+          snippets.splice(currentIndex, 1);
+          QuickLaunchStorage.set({ snippets }, renderSnippetsList);
         }
       });
 
@@ -833,9 +856,9 @@ document.addEventListener('DOMContentLoaded', () => {
       item.appendChild(dragHandle);
 
       dragHandle.addEventListener('pointerdown', e => {
+        if (e.button !== 0) return;
         if (e.target.closest('.action-btn')) return;
         e.preventDefault();
-        const fromIdx = index;
         let dragging = false;
         let dropTarget = null;
 
@@ -866,7 +889,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const elemBelow = document.elementFromPoint(ev.clientX, ev.clientY);
           dragHandle.style.display = 'block';
           
-          dropTarget = elemBelow ? elemBelow.closest('.list-item') : null;
+          dropTarget = elemBelow ? elemBelow.closest('#snippetsList .list-item') : null;
           if (dropTarget && dropTarget !== item) {
             dropTarget.classList.add('drag-target');
           }
@@ -892,15 +915,18 @@ document.addEventListener('DOMContentLoaded', () => {
           document.removeEventListener('pointermove', onMove);
           document.removeEventListener('pointerup', onUp);
           document.removeEventListener('pointercancel', onCancel);
+          window.removeEventListener('blur', onCancel);
           item.classList.remove('sortable-ghost');
           document.querySelectorAll('#snippetsList .list-item').forEach(el => el.classList.remove('drag-target'));
 
-          if (dragging && dropTarget) {
-            const toIdx = parseInt(dropTarget.dataset.index);
-            if (!isNaN(toIdx) && fromIdx !== toIdx) {
+          if (dragging && dropTarget && item.isConnected && dropTarget.isConnected &&
+              !QuickLaunchStorage.blocked && !QuickLaunchStorage.busy) {
+            const fromIdx = snippets.indexOf(snippet);
+            const toIdx = snippets.indexOf(dragRecords.get(dropTarget));
+            if (fromIdx >= 0 && toIdx >= 0 && fromIdx !== toIdx) {
               const [moved] = snippets.splice(fromIdx, 1);
               snippets.splice(toIdx, 0, moved);
-              chrome.storage.local.set({ snippets }, renderSnippetsList);
+              QuickLaunchStorage.set({ snippets }, renderSnippetsList);
             }
           }
         };
@@ -910,6 +936,7 @@ document.addEventListener('DOMContentLoaded', () => {
           document.removeEventListener('pointermove', onMove);
           document.removeEventListener('pointerup', onUp);
           document.removeEventListener('pointercancel', onCancel);
+          window.removeEventListener('blur', onCancel);
           item.classList.remove('sortable-ghost');
           document.querySelectorAll('#snippetsList .list-item').forEach(el => el.classList.remove('drag-target'));
         };
@@ -917,6 +944,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('pointermove', onMove);
         document.addEventListener('pointerup', onUp);
         document.addEventListener('pointercancel', onCancel);
+        window.addEventListener('blur', onCancel, { once: true });
       });
 
       snippetsList.appendChild(item);
@@ -929,6 +957,7 @@ document.addEventListener('DOMContentLoaded', () => {
   snippetModal.addEventListener('click', e => { if (e.target === snippetModal) closeSnippetModal(); });
 
   function openSnippetModal(snippet = null) {
+    snippetModalOpener = document.activeElement;
     if (snippet) {
       editSnippetId.value = snippet.id;
       modalSnippetTitle.value = snippet.title;
@@ -948,15 +977,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function closeSnippetModal() {
     snippetModal.style.display = 'none';
+    (snippetModalOpener?.isConnected ? snippetModalOpener : addSnippetBtn).focus();
   }
 
   saveSnippetModalBtn.addEventListener('click', () => {
     const newTitle = modalSnippetTitle.value.trim();
-    const newText = modalSnippetText.value.trim();
+    const newText = modalSnippetText.value;
     const tagsRaw = document.getElementById('modalSnippetTags').value;
     const newTags = tagsRaw.split(',').map(t => t.trim()).filter(t => t !== '');
     
-    if (!newTitle || !newText) {
+    if (!newTitle || !newText.trim()) {
       showToast('Title and Text are required.', true);
       return;
     }
@@ -964,13 +994,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const id = editSnippetId.value;
     if (id) {
       const target = snippets.find(s => s.id === id);
+      if (!target) { showToast('This snippet was removed. Reopen the editor.'); return; }
       if (target) {
         target.title = newTitle;
         target.text = newText;
         target.tags = newTags;
       }
     } else {
-      const newId = 'snip_' + Date.now();
+      const newId = 'snip_' + crypto.randomUUID();
       snippets.push({
         id: newId,
         title: newTitle,
@@ -980,13 +1011,13 @@ document.addEventListener('DOMContentLoaded', () => {
       editSnippetId.value = newId;
     }
 
-    chrome.storage.local.set({ snippets }, () => {
+    QuickLaunchStorage.set({ snippets }, () => {
       if (chrome.runtime.lastError) {
         showToast('Could not save snippet. Storage may be full.');
         return;
       }
-      closeSnippetModal();
       renderSnippetsList();
+      closeSnippetModal();
       showToast('Snippet saved!');
     });
   });
@@ -996,7 +1027,10 @@ document.addEventListener('DOMContentLoaded', () => {
   cancelModalBtn.addEventListener('click', closeModal);
   editModal.addEventListener('click', e => { if (e.target === editModal) closeModal(); });
 
-  function openModal(index = -1) {
+  function openModal(shortcut = null) {
+    if (shortcut && !shortcuts.includes(shortcut)) { showToast('This shortcut was removed. Reopen the editor.'); return; }
+    editingShortcut = shortcut;
+    shortcutModalOpener = document.activeElement;
     faviconPreview.style.display = 'none';
     editIconData.value = '';
 
@@ -1008,17 +1042,17 @@ document.addEventListener('DOMContentLoaded', () => {
       shortcutWorkspace.appendChild(opt);
     });
 
-    if (index >= 0) {
+    if (shortcut) {
       modalTitle.textContent    = 'Edit Shortcut';
-      shortcutTitleIn.value     = shortcuts[index].title;
-      shortcutUrlIn.value       = shortcuts[index].url;
-      shortcutWorkspace.value   = shortcuts[index].workspaceId || 'w_default';
-      editIndexInput.value      = index;
-      editIconData.value        = shortcuts[index].icon || '';
-      if (shortcuts[index].url) {
-        faviconImg.src            = QuickLaunchBackup.safeIcon(shortcuts[index].icon)
-          ? shortcuts[index].icon
-          : localFaviconUrl(shortcuts[index].url);
+      shortcutTitleIn.value     = shortcut.title;
+      shortcutUrlIn.value       = shortcut.url;
+      shortcutWorkspace.value   = shortcut.workspaceId || 'w_default';
+      editIndexInput.value      = shortcuts.indexOf(shortcut);
+      editIconData.value        = shortcut.icon || '';
+      if (shortcut.url) {
+        faviconImg.src            = QuickLaunchBackup.safeIcon(shortcut.icon)
+          ? shortcut.icon
+          : localFaviconUrl(shortcut.url);
         faviconStatus.textContent = 'Current icon';
         faviconPreview.style.display = 'flex';
       }
@@ -1035,6 +1069,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function closeModal() {
     editModal.classList.remove('active');
+    (shortcutModalOpener?.isConnected ? shortcutModalOpener : addShortcutBtn).focus();
   }
 
   // ── Favicon preview ───────────────────────────────────────────────────────
@@ -1050,9 +1085,9 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchFaviconBtn.addEventListener('click', async () => {
     let url = shortcutUrlIn.value.trim();
     if (!url) return;
-    if (!url.startsWith('http://') && !url.startsWith('https://')) url = 'https://' + url;
+    url = QuickLaunchBackup.inputUrl(url);
     try {
-      new URL(url);
+      if (!url) throw new Error('Invalid URL');
       faviconImg.src = localFaviconUrl(url);
       faviconStatus.textContent = 'Icon from browser cache';
       faviconPreview.style.display = 'flex';
@@ -1070,28 +1105,34 @@ document.addEventListener('DOMContentLoaded', () => {
   saveModalBtn.addEventListener('click', () => {
     const title = shortcutTitleIn.value.trim();
     let url = shortcutUrlIn.value.trim();
-    const index = editIndexInput.value;
+    if (editingShortcut && !shortcuts.includes(editingShortcut)) {
+      showToast('This shortcut was removed. Reopen the editor.'); return;
+    }
 
     if (!title || !url) { alert('Please fill in both title and URL.'); return; }
-    if (!url.startsWith('http://') && !url.startsWith('https://')) url = 'https://' + url;
+    url = QuickLaunchBackup.inputUrl(url);
 
-    if (!QuickLaunchBackup.webUrl(url)) { alert('Please enter a valid web URL.'); return; }
+    if (!url) { alert('Please enter a valid web URL.'); return; }
 
+    if (shortcuts.some(s => s !== editingShortcut && s.url === url && (s.workspaceId || 'w_default') === shortcutWorkspace.value)) {
+      showToast('This shortcut is already in this workspace.'); return;
+    }
     const shortcutData = {
       title,
       url,
-      icon: editIconData.value || (index !== '' ? shortcuts[index].icon : '') || '',
+      icon: QuickLaunchBackup.safeIcon(editIconData.value) || '',
       workspaceId: shortcutWorkspace.value || 'w_default'
     };
 
-    if (index !== '') {
-      shortcuts[parseInt(index)] = shortcutData;
+    if (editingShortcut) {
+      Object.assign(editingShortcut, shortcutData);
     } else {
       shortcuts.push(shortcutData);
+      editingShortcut = shortcutData;
       editIndexInput.value = shortcuts.length - 1;
     }
 
-    chrome.storage.local.set({ shortcuts }, () => {
+    QuickLaunchStorage.set({ shortcuts }, () => {
       if (chrome.runtime.lastError) {
         showToast('Could not save shortcut. Storage may be full.');
         return;
@@ -1103,8 +1144,11 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ── Import / Export ───────────────────────────────────────────────────────
-  exportBtn.addEventListener('click', () => {
-    const data = { version: '2.6', shortcuts, snippets, settings, usageCounts, sortMode };
+  exportBtn.addEventListener('click', async () => {
+    let saved;
+    try { saved = await chrome.storage.local.get(['shortcuts', 'snippets', 'settings', 'usageCounts', 'sortMode', 'searchPosition']); }
+    catch { showToast('Could not load data for export.'); return; }
+    const data = QuickLaunchBackup.exportData(saved, defaultSettings, chrome.runtime.getManifest().version);
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
@@ -1131,22 +1175,11 @@ document.addEventListener('DOMContentLoaded', () => {
             (!Array.isArray(data.shortcuts) && !Array.isArray(data.snippets))) {
           throw new Error('Not a QuickLaunch backup');
         }
-        const nextSettings = data.settings
-          ? QuickLaunchBackup.settings(data.settings, settings)
-          : { ...settings, workspaces: QuickLaunchBackup.workspaces(settings.workspaces) };
-        const validWsIds = new Set(nextSettings.workspaces.map(w => w.id));
-        const nextShortcuts = QuickLaunchBackup.shortcuts(data.shortcuts, validWsIds);
-        const nextSnippets = QuickLaunchBackup.snippets(data.snippets);
-        if (!nextShortcuts.length && !nextSnippets.length) {
-          showToast('No valid shortcuts or snippets found in file.');
-          return;
-        }
-        const nextUsageCounts = data.usageCounts
-          ? QuickLaunchBackup.usageCounts(data.usageCounts) : usageCounts;
-        const VALID_SORT_MODES = ['manual', 'most-used', 'az'];
-        const nextSortMode = VALID_SORT_MODES.includes(data.sortMode) ? data.sortMode : sortMode;
+        const next = QuickLaunchBackup.importData(data, { settings, shortcuts, snippets, usageCounts, sortMode }, 'replace', prefix => prefix + crypto.randomUUID());
+        const { settings: nextSettings, shortcuts: nextShortcuts, snippets: nextSnippets,
+          usageCounts: nextUsageCounts, sortMode: nextSortMode } = next;
 
-        chrome.storage.local.set({
+        QuickLaunchStorage.set({
           shortcuts: nextShortcuts, snippets: nextSnippets, settings: nextSettings,
           usageCounts: nextUsageCounts, sortMode: nextSortMode,
           searchPosition: nextSettings.searchPosition || 'top', activeWorkspaceId: 'w_default'
@@ -1164,10 +1197,10 @@ document.addEventListener('DOMContentLoaded', () => {
           renderShortcutsList();
           renderSnippetsList();
           renderWorkspacesList();
-          showToast('Import successful!');
+          showToast(next.skipped > 0 ? `Import successful (${next.skipped} invalid or duplicate items skipped).` : 'Import successful!');
         });
       } catch(err) {
-        alert('Invalid file. Please choose a valid QuickLaunch JSON backup.');
+        alert(err.message || 'Invalid QuickLaunch backup.');
       } finally {
         importFile.value = '';
       }
@@ -1176,13 +1209,14 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Could not read the file. Please try again.');
       importFile.value = '';
     };
+    if (file.size > QuickLaunchBackup.MAX_IMPORT_BYTES) { showToast('Backup is too large (maximum 5 MB).'); importFile.value = ''; return; }
     reader.readAsText(file);
   });
 
   // ── Reset Actions ─────────────────────────────────────────────────────────
   resetUsageBtn.addEventListener('click', () => {
     if (!confirm('Reset all usage counts? Your "Most-Used" sorting will start from scratch.')) return;
-    chrome.storage.local.set({ usageCounts: {} }, () => {
+    QuickLaunchStorage.set({ usageCounts: {} }, () => {
       usageCounts = {};
       showToast('Usage counts reset');
     });
@@ -1191,7 +1225,7 @@ document.addEventListener('DOMContentLoaded', () => {
   resetAllBtn.addEventListener('click', () => {
     if (!confirm('This will delete ALL shortcuts, snippets, and reset all settings. Are you sure?')) return;
     if (!confirm('Are you absolutely sure? This cannot be undone.')) return;
-    chrome.storage.local.clear(() => {
+    QuickLaunchStorage.clear(() => {
       window.location.reload();
     });
   });
@@ -1200,13 +1234,27 @@ document.addEventListener('DOMContentLoaded', () => {
   function showToast(msg = 'Saved!') {
     toast.textContent = msg;
     toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2500);
+    clearTimeout(toast._timeout);
+    toast._timeout = setTimeout(() => toast.classList.remove('show'), 2500);
   }
 
   // ── Keyboard Shortcuts ────────────────────────────────────────────────────
   document.addEventListener('keydown', (e) => {
+    if (QuickLaunchStorage.blocked || e.isComposing || e.repeat) return;
     const isEditModalOpen = editModal.classList.contains('active');
     const isSnippetModalOpen = snippetModal.style.display === 'flex';
+
+    if (e.key === 'Tab' && (isEditModalOpen || isSnippetModalOpen)) {
+      const modal = isEditModalOpen ? editModal : snippetModal;
+      const focusable = [...modal.querySelectorAll('button, input, select, textarea, [tabindex]')]
+        .filter(el => !el.disabled && el.type !== 'hidden' && el.tabIndex >= 0 && getComputedStyle(el).display !== 'none');
+      const first = focusable[0], last = focusable.at(-1);
+      if (e.shiftKey && (document.activeElement === first || !modal.contains(document.activeElement))) {
+        e.preventDefault(); last?.focus();
+      } else if (!e.shiftKey && (document.activeElement === last || !modal.contains(document.activeElement))) {
+        e.preventDefault(); first?.focus();
+      }
+    }
 
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
       if (isEditModalOpen) saveModalBtn.click();

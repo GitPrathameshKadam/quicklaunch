@@ -1,0 +1,59 @@
+{
+  "verified_date": "2026-10-02",
+  "version": "2.7",
+  "archive": "dist/quicklaunch-v2.7.zip",
+  "archive_sha256": "37b31bdde359e91bf9b801605bd33dfda520b95d85a4cdc92d4a5e63a0839eeb",
+  "archive_bytes": 127321,
+  "regression_tests": 96,
+  "regression_passed": 96,
+  "packaged_files": 26,
+  "source_sha256": {
+    "THIRD_PARTY_NOTICES.md": "c76b254650142b4561be316b85aa80a49684e7a4d3a7ec6760865cd3a7883ae7",
+    "assets/icon128.png": "9a579b543f19fc099cde43922d2f56ac5539a51e3ba87c86fc0810e52aaa5637",
+    "assets/icon16.png": "be29b844419258767c3b19ab5c49f32d2207fd523881031fc6a22c3e72c5de72",
+    "assets/icon48.png": "26539a44d9a358dd5e99c4e66ada535f6d4ab28f15d7ba2b926733a269fe6a0a",
+    "assets/libs/atom-one-dark.min.css": "4237ffca7ce6aadb438c457e0a675b125c534bbdda5b87f41f3a1495603bcc9b",
+    "assets/libs/highlight.min.js": "837a6fa5b0c736b52bbde2b2b6190f305da3fc9ed41681db5321507057b5c846",
+    "assets/libs/marked.min.js": "3e7e7d7feb3e5d58cb6c804f68ab5c24cc7e5eb6270fd6e5cbb9124739217d0c",
+    "background.js": "3c67c985122aa23b8a5a1bf6b310831e8e24579ca23047b4ae0e5395a2f3ce84",
+    "backup.js": "52414afe160129850ba7a45bbce7609eff0dcf85a40063ce26ca61cbbff282e3",
+    "manifest.json": "25505946b768f0cc20d1528164a2ed377665e956657ef16c742b0ed9bff2abb5",
+    "options.css": "205af4e75f2faa1a84396d11c6890bce0edf823a45f21a7a6023eb56985e0d29",
+    "options.html": "9ae846badaf0f008dd28639bf532e6995a2af4c662188c5ada7384876d0b7342",
+    "options.js": "8bf5ae16e213e10551b3b224e9177629f40b0e2ac3fabeb7c827b7550ea02fb5",
+    "popup.css": "dd24def77644da1e874ef466ed35d13e35c2a582f25333593618c81c6f7b996b",
+    "popup.html": "22296a47b7af1f11da580e0a5933ec71eb2f80bf7c8f58c249c22924b70ce37b",
+    "popup.js": "ad66a0b7720df4c924fe92592a6b959052abd724d836a28827fa72fb0922f4ba",
+    "privacy.html": "988c0750727ce5b6127605c207d33c6366a55446137b890f6696324903f0b0e4",
+    "search.js": "df15f9ee91bcd15315ef28d05a08836ad1adabe3c44bfb1bba3f9068aa09d2ef",
+    "snippet.js": "33a8b43efb1445fe5d9b515c92ddea75641ecca8615302c76b721ea7c3548472",
+    "storage-value.js": "865ff859b61c76bdbcac8e98e21f89ee16d3217f0e29252b4434f8329ab04108",
+    "storage-worker.js": "7cb6cf6cf71e2364640cc5ea290a05e979697cfd2d000f646f7f98c97820c075",
+    "storage.js": "47bccbf6ac609b99edc5e6396cbbf68a052a9c8feb0e428515631b07bc4c65f0",
+    "third_party_licenses/feather-LICENSE.txt": "308028e93fcf84972523cdf6e616f73168546b4953895f516d01287f16fe7bee",
+    "third_party_licenses/highlightjs-LICENSE.txt": "6c081431591d9df696c82dc598fe1423765b8a299b200ed00b281afd0f64c490",
+    "third_party_licenses/marked-LICENSE.md": "8e3a3f82f59a60958f56ca08f445647c32a4733dc7ca6c2c46f6eb898471ab9c",
+    "ui.css": "cedec25828e4c4c90a5a886236e59217d9e111219c8d43d46efe99781a3fae5c"
+  },
+  "listing_images": {
+    "promo/v2.7-appearance-light.jpg": {
+      "sha256": "250bf8672ea94a49beeb2457b2719ad33fee5b89b23b608bda81ef25f2c1dedf",
+      "bytes": 46131
+    },
+    "promo/v2.7-popup-copy.jpg": {
+      "sha256": "d6e40078a0914447bcf68579c795a4df1d49ea1265e4ac4933033cfd1d9fb638",
+      "bytes": 21522
+    },
+    "promo/v2.7-settings-dark.jpg": {
+      "sha256": "07e40e921afb54d802294fb5413087208fb3912e9aa4a75f9636e4dc27e4ebaf",
+      "bytes": 64882
+    },
+    "promo/v2.7-snippets-dark.jpg": {
+      "sha256": "a9b236683eb0cfec203156de3fce7ddc21f4aa4004e007672981859768b6fe41",
+      "bytes": 57825
+    }
+  },
+  "native_chrome_acceptance": "pending",
+  "store_submission": "not performed",
+  "public_privacy_deployment": "pending draft PR 1"
+}

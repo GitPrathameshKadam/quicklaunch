@@ -1,16 +1,18 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>QuickLaunch - Settings</title>
   <link rel="stylesheet" href="options.css">
+  <link rel="stylesheet" href="ui.css">
 
 </head>
-<body>
+<body class="options-page">
   <div class="sidebar">
     <div class="brand">
       <img src="assets/icon128.png" alt="Logo" class="logo">
-      <h1>QuickLaunch</h1>
+      <div class="brand-copy"><h1>QuickLaunch</h1><span>Settings</span></div>
     </div>
     <nav class="sidebar-nav">
       <a href="#grid-settings" class="nav-link active">
@@ -34,42 +36,51 @@
         Snippets
       </a>
     </nav>
+    <div class="sidebar-footer"><span class="local-indicator"></span><span>Stored on this device</span></div>
   </div>
 
   <div class="content">
+    <div class="settings-meta"><span>Your workspace</span><span>Changes save automatically</span></div>
 
     <!-- ── Grid & Shortcuts ── -->
     <section id="grid-settings">
-      <h2>Grid Configuration</h2>
-      <p class="subtitle">Set the dimensions of your popup grid.</p>
+      <div class="section-heading"><h2>Grid &amp; shortcuts</h2>
+      <p class="subtitle">Make room for the sites you use every day.</p></div>
+
+      <div class="grid-setup">
+      <div class="settings-card">
+      <h3>Popup capacity</h3>
+      <p class="hint card-description">Set the maximum rows and columns. Columns adapt to your popup width so every tile stays readable.</p>
 
       <div class="settings-row">
         <div class="setting-group">
-          <label for="rows">Rows (Max 20)</label>
+          <label for="rows">Rows <span class="label-note">1–20</span></label>
           <input type="number" id="rows" min="1" max="20" value="4">
         </div>
         <div class="setting-group">
-          <label for="cols">Columns (Max 10)</label>
+          <label for="cols">Columns <span class="label-note">1–10</span></label>
           <input type="number" id="cols" min="1" max="10" value="4">
         </div>
       </div>
-
-      <div class="divider"></div>
+      </div>
       
-      <h2>Workspaces</h2>
-      <p class="subtitle">Organize your shortcuts into tabs. Drag to reorder. Deleting a workspace moves its shortcuts to Main.</p>
+      <div class="settings-card">
+      <h3>Workspaces</h3>
+      <p class="hint card-description">Group your shortcuts into tabs. Drag to reorder; deleting a workspace moves its shortcuts to Main.</p>
       
       <div id="workspacesList" class="shortcuts-list" style="margin-bottom: 12px;"></div>
       
-      <div class="url-input-row" style="max-width: 340px;">
-        <input type="text" id="newWsInput" placeholder="New workspace name..." maxlength="20">
+      <div class="url-input-row workspace-create">
+        <input type="text" id="newWsInput" aria-label="New workspace name" placeholder="New workspace name" maxlength="20">
         <button id="addWsBtn" class="primary-btn">Add Workspace</button>
       </div>
+      </div>
+      </div>
 
-      <div class="divider"></div>
-
-      <h2>Shortcuts</h2>
-      <p class="subtitle">Drag to reorder. Icons come from Chrome's favicon cache after you visit a site.</p>
+      <div class="settings-card">
+      <div class="card-heading"><div><h3>Shortcuts</h3>
+      <p class="hint">Drag to reorder your saved sites.</p></div>
+      <button id="addShortcutBtn" class="primary-btn">+ Add Shortcut</button></div>
 
       <div class="shortcuts-list-header">
         <span class="header-empty"></span>
@@ -79,32 +90,38 @@
       </div>
 
       <div id="shortcutsList" class="shortcuts-list"></div>
-      <button id="addShortcutBtn" class="primary-btn mt-16">+ Add Shortcut</button>
+      <p class="hint list-footnote">Icons use your browser’s favicon cache after you visit a site.</p>
+      </div>
     </section>
 
     <!-- ── Snippets ── -->
     <section id="snippets" style="display:none;">
-      <h2>Snippets</h2>
-      <p class="subtitle">Manage your saved text blocks and AI prompts.</p>
+      <div class="section-heading"><h2>Snippets</h2>
+      <p class="subtitle">Keep useful text and prompts ready to copy.</p></div>
+      <div class="settings-card">
+      <div class="card-heading"><div><h3>Your snippets</h3><p class="hint">Drag to reorder. Tags help you find the right text.</p></div>
+      <button id="addSnippetBtn" class="primary-btn">+ Add Snippet</button></div>
 
-      <div class="shortcuts-list-header" style="grid-template-columns: 200px 1fr 60px;">
+      <div class="shortcuts-list-header snippet-list-header">
         <span>Title</span>
         <span>Text Preview</span>
         <span>Actions</span>
       </div>
 
       <div id="snippetsList" class="shortcuts-list"></div>
-      <button id="addSnippetBtn" class="primary-btn mt-16">+ Add Snippet</button>
+      </div>
     </section>
 
     <!-- ── Appearance ── -->
     <section id="appearance" style="display:none;">
-      <h2>Appearance</h2>
-      <p class="subtitle">Customize how the popup looks and feels.</p>
+      <div class="section-heading"><h2>Appearance</h2>
+      <p class="subtitle">A comfortable layout, in your preferred color mode.</p></div>
+      <div class="appearance-layout">
+      <div class="settings-card appearance-controls">
 
-      <!-- Theme -->
+      <!-- Color mode -->
       <div class="setting-group">
-        <label>Theme</label>
+        <label>Color mode</label>
         <div class="segmented-control" id="themeControl">
           <button data-value="dark" class="seg-btn active">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -123,19 +140,19 @@
 
       <!-- Popup width -->
       <div class="setting-group">
-        <label for="popupWidth">Popup Width — <span id="popupWidthDisplay">380px</span></label>
+        <label for="popupWidth">Popup width <span class="setting-value" id="popupWidthDisplay">380px</span></label>
         <div class="slider-row">
           <span class="slider-label">Compact</span>
           <!-- Clamped Max explicitly to 560 -->
           <input type="range" id="popupWidth" min="300" max="560" step="10" value="380">
           <span class="slider-label">Wide</span>
         </div>
-        <p class="hint">Max 560px to prevent forced horizontal scrollbars in the extension popup.</p>
+        <p class="hint">Choose a comfortable size between 300 and 560 pixels.</p>
       </div>
 
       <!-- Icon shape -->
       <div class="setting-group">
-        <label>Icon Shape</label>
+        <label>Icon shape</label>
         <div class="icon-shape-control">
           <label class="shape-option" data-value="circle">
             <input type="radio" name="iconShape" value="circle">
@@ -157,7 +174,7 @@
 
       <!-- Icon size -->
       <div class="setting-group">
-        <label>Icon Size</label>
+        <label>Icon size</label>
         <div class="segmented-control" id="iconSizeControl">
           <button data-value="32" class="seg-btn">Small</button>
           <button data-value="48" class="seg-btn active">Medium</button>
@@ -178,84 +195,90 @@
 
       <!-- Font size -->
       <div class="setting-group">
-        <label for="fontSize">Font Size — <span id="fontSizeDisplay">12px</span></label>
+        <label for="fontSize">Title size <span class="setting-value" id="fontSizeDisplay">12px</span></label>
         <input type="range" id="fontSize" min="10" max="18" value="12">
       </div>
 
       <!-- Grid gap -->
       <div class="setting-group">
-        <label for="gridGap">Grid Spacing — <span id="gridGapDisplay">16px</span></label>
+        <label for="gridGap">Tile spacing <span class="setting-value" id="gridGapDisplay">16px</span></label>
         <input type="range" id="gridGap" min="4" max="32" value="16">
       </div>
-
-      <!-- Accent color -->
-      <div class="setting-group">
-        <label for="accentColor">Accent Color</label>
-        <div class="color-row">
-          <input type="color" id="accentColor" value="#8ab4f8">
-          <button id="resetAccentBtn" class="text-btn">Reset to default</button>
-        </div>
       </div>
 
       <!-- Live Preview -->
-      <div class="preview-box">
-        <span class="preview-label">Preview</span>
+      <aside class="preview-box">
+        <span class="preview-label">Tile preview</span>
+        <p class="hint" id="previewSummary">380px popup · 4 columns</p>
         <div class="preview-grid" id="previewGrid">
           <div class="preview-item" id="previewItem">
             <div class="preview-icon" id="previewIconEl">
-              <span style="color:var(--text-primary); font-weight:600; font-size:16px;">Y</span>
+              <span>D</span>
             </div>
-            <div class="preview-title" id="previewTitleEl">YouTube</div>
+            <div class="preview-title" id="previewTitleEl">Docs</div>
           </div>
           <div class="preview-item">
-            <div class="preview-icon" style="opacity:0.4;">
-              <span style="color:var(--text-primary); font-weight:600; font-size:16px;">G</span>
+            <div class="preview-icon">
+              <span>M</span>
             </div>
-            <div class="preview-title" style="opacity:0.4;">GitHub</div>
+            <div class="preview-title">Mail</div>
           </div>
           <div class="preview-item">
-            <div class="preview-icon" style="opacity:0.25;">
-              <span style="color:var(--text-primary); font-weight:600; font-size:16px;">N</span>
+            <div class="preview-icon">
+              <span>N</span>
             </div>
-            <div class="preview-title" style="opacity:0.25;">Netflix</div>
+            <div class="preview-title">Notes</div>
           </div>
+          <div class="preview-item"><div class="preview-icon"><span>C</span></div><div class="preview-title">Calendar</div></div>
+          <div class="preview-item"><div class="preview-icon"><span>D</span></div><div class="preview-title">Design</div></div>
+          <div class="preview-item"><div class="preview-icon"><span>C</span></div><div class="preview-title">Code</div></div>
         </div>
+        <p class="hint preview-footnote">Tile styling shown at a comfortable preview size. The popup’s column count is shown above.</p>
+      </aside>
       </div>
     </section>
 
     <!-- ── Behavior ── -->
     <section id="behavior" style="display:none;">
-      <h2>Behavior</h2>
-      <p class="subtitle">Control how QuickLaunch opens links and behaves.</p>
+      <div class="section-heading"><h2>Behavior</h2>
+      <p class="subtitle">Make everyday actions work the way you prefer.</p></div>
+      <div class="settings-card">
 
       <div class="setting-group">
-        <label for="open-tab">Open Behavior</label>
+        <label for="open-tab">Open links</label>
         <select id="open-tab">
           <option value="new">Open in new tab</option>
           <option value="current">Open in current tab</option>
         </select>
-      </div>
       <p class="hint">Choose whether shortcuts should open in a new tab or replace the current page.</p>
+      </div>
       <div class="divider"></div>
 
       <div class="setting-group">
-        <label for="hotkeyAction">Number Key Behavior (1-9, 0)</label>
+        <label for="hotkeyAction">Number keys (1–9, 0)</label>
         <select id="hotkeyAction">
           <option value="launch">Launch Directly</option>
           <option value="type">Type in Search</option>
         </select>
-      </div>
       <p class="hint">Choose whether pressing 1-9, 0 instantly opens the shortcut or types the number in the search bar.</p>
+      </div>
 
       <div class="divider"></div>
 
       <div class="setting-group">
-        <label>Search Bar Position</label>
+        <label>Search bar position</label>
         <div class="segmented-control" id="searchPositionControl">
           <button data-value="top" class="seg-btn active">Top</button>
           <button data-value="bottom" class="seg-btn">Bottom</button>
         </div>
         <p class="hint">Choose where the search and settings bar should appear in the popup.</p>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="setting-group">
+        <label for="keepOpenAfterCopy"><input type="checkbox" id="keepOpenAfterCopy">Keep popup open after copying</label>
+        <p class="hint">Copy several snippets without reopening QuickLaunch. Turn this off to close the popup after each copy.</p>
       </div>
 
       <div class="divider"></div>
@@ -269,16 +292,17 @@
           Only needed for the <code>{{clipboard}}</code> placeholder in snippets, which
           pastes your current clipboard contents into the copied text. QuickLaunch never
           stores or transmits clipboard data. Leave this off and
-          <code>{{clipboard}}</code> expands to nothing.
+          snippets that need <code>{{clipboard}}</code> are not copied.
         </p>
         <p class="hint"><a href="privacy.html" target="_blank" rel="noopener">Read the privacy policy</a></p>
+      </div>
       </div>
     </section>
 
     <!-- ── Import / Export ── -->
     <section id="data" style="display:none;">
-      <h2>Import / Export</h2>
-      <p class="subtitle">Back up your shortcuts and settings, or restore them on another device.</p>
+      <div class="section-heading"><h2>Import / export</h2>
+      <p class="subtitle">Keep a backup, or take your workspace to another device.</p></div>
 
       <div class="data-card">
         <div class="data-card-icon">
@@ -286,7 +310,7 @@
         </div>
         <div>
           <div class="data-card-title">Export Data</div>
-          <div class="data-card-desc">Download all shortcuts and settings as a JSON file.</div>
+          <div class="data-card-desc">Download shortcuts, snippets, and settings as a JSON backup.</div>
         </div>
         <button id="exportBtn" class="primary-btn">Export</button>
       </div>
@@ -299,30 +323,28 @@
           <div class="data-card-title">Import Data</div>
           <div class="data-card-desc">Restore from a previously exported JSON file.</div>
         </div>
-        <label class="primary-btn" style="cursor:pointer;">
-          Import
-          <input type="file" id="importFile" accept=".json" style="display:none;">
-        </label>
+        <button id="importDataBtn" class="secondary-btn">Import</button>
+        <input type="file" id="importFile" accept=".json" style="display:none;">
       </div>
 
       <div class="divider"></div>
 
       <div class="danger-zone">
         <h3>Danger Zone</h3>
-        <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+        <div class="danger-actions">
           <button id="resetUsageBtn" class="danger-btn">Reset Usage Counts</button>
           <button id="resetAllBtn" class="danger-btn">Reset All Data</button>
         </div>
-        <p class="hint">Resetting usage counts clears data for "Most-Used" sorting. Resetting all data permanently deletes all shortcuts and settings.</p>
+        <p class="hint">Reset usage counts to clear “Most-Used” sorting history. Reset all data permanently removes shortcuts, snippets, drafts, and settings.</p>
       </div>
     </section>
 
   </div><!-- .content -->
 
-  <div id="toast" class="toast">Saved!</div>
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
   <!-- Modal -->
-  <div id="editModal" class="modal">
+  <div id="editModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-content">
       <h3 id="modalTitle">Add Shortcut</h3>
       <div class="setting-group">
@@ -357,7 +379,7 @@
   </div>
 
   <!-- Snippet Modal -->
-  <div id="snippetModal" class="modal">
+  <div id="snippetModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="snippetModalTitle">
     <div class="modal-content">
       <h3 id="snippetModalTitle">Add Snippet</h3>
       <div class="setting-group">
@@ -382,6 +404,8 @@
   </div>
 
   <script src="backup.js"></script>
+  <script src="storage-value.js"></script>
+  <script src="storage.js"></script>
   <script src="options.js"></script>
 </body>
 </html>

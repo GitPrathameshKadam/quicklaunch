@@ -1,0 +1,8 @@
+[
+  "manifest.json", "background.js", "storage-worker.js", "storage-value.js", "storage.js", "snippet.js", "search.js", "backup.js",
+  "popup.html", "popup.js", "popup.css", "options.html", "options.js", "options.css", "ui.css",
+  "privacy.html", "THIRD_PARTY_NOTICES.md",
+  "assets/icon16.png", "assets/icon48.png", "assets/icon128.png",
+  "assets/libs/marked.min.js", "assets/libs/highlight.min.js", "assets/libs/atom-one-dark.min.css",
+  "third_party_licenses/marked-LICENSE.md", "third_party_licenses/highlightjs-LICENSE.txt", "third_party_licenses/feather-LICENSE.txt"
+]

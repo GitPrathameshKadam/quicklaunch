@@ -912,25 +912,14 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   flex: 1;
+  min-width: 0;
 }
 
 .snippet-actions {
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.snippet-badge {
-  background-color: var(--accent-color);
-  color: var(--bg-color);
-  font-size: 10px;
-  font-weight: 700;
-  min-width: 18px;
-  height: 18px;
-  border-radius: 9px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-shrink: 0;
 }
 
 .snippet-action-btn {

@@ -1,15 +1,17 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>QuickLaunch</title>
   <link rel="stylesheet" href="popup.css">
+  <link rel="stylesheet" href="ui.css">
 
   <link rel="stylesheet" href="assets/libs/atom-one-dark.min.css">
   <script src="assets/libs/marked.min.js"></script>
   <script src="assets/libs/highlight.min.js"></script>
 </head>
-<body>
+<body class="popup-page">
+  <span id="copyStatus" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></span>
   <div id="app-container">
     <div id="header-bar" class="header">
       <div class="search-container">
@@ -17,7 +19,7 @@
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
-        <input type="text" id="searchInput" placeholder="Search and launch" autocomplete="off">
+        <input type="text" id="searchInput" aria-label="Search shortcuts and snippets" aria-describedby="searchStatus" placeholder="Search and launch" autocomplete="off">
         <button id="searchClearBtn" class="search-clear-btn" aria-label="Clear search" style="display:none;">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
@@ -73,6 +75,7 @@
       <button id="modeShortcutsBtn" class="mode-btn active">Shortcuts</button>
       <button id="modeSnippetsBtn" class="mode-btn">Snippets</button>
     </div>
+    <div id="searchStatus" class="search-status" role="status" aria-live="polite" aria-atomic="true" hidden></div>
 
     <!-- Workspace Tabs relocated to bottom -->
 
@@ -134,7 +137,7 @@
     </div>
 
     <!-- Quick Add Toast -->
-    <div id="quickAddToast" class="quick-add-toast" style="display:none;">
+    <div id="quickAddToast" class="quick-add-toast" role="dialog" aria-modal="true" aria-label="Add current tab" style="display:none;">
       <div class="qa-content">
         <img id="qaIcon" class="qa-icon" src="" alt="">
         <div class="qa-info">
@@ -149,7 +152,7 @@
     </div>
 
     <!-- Snippet Edit Sheet -->
-    <div id="snippetEditSheet" class="edit-sheet" style="display:none;">
+    <div id="snippetEditSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-label="Snippet editor" style="display:none;">
       <div class="edit-sheet-content">
         <div class="edit-sheet-field">
           <label for="snippetEditTitle">Snippet Title</label>
@@ -172,7 +175,7 @@
     </div>
 
     <!-- Edit Shortcut Sheet -->
-    <div id="editShortcutSheet" class="edit-sheet" style="display:none;">
+    <div id="editShortcutSheet" class="edit-sheet" role="dialog" aria-modal="true" aria-label="Edit shortcut" style="display:none;">
       <div class="edit-sheet-content">
         <div class="edit-sheet-field">
           <label for="editSheetTitle">Title</label>
@@ -191,9 +194,14 @@
 
     <!-- Workspace Tabs (Only for Shortcuts mode) -->
     <div id="workspaceTabs" class="workspace-tabs" style="display:none;"></div>
+    <div class="sheet-backdrop" aria-hidden="true"></div>
   </div>
 
   <script src="backup.js"></script>
+  <script src="storage-value.js"></script>
+  <script src="storage.js"></script>
+  <script src="snippet.js"></script>
+  <script src="search.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

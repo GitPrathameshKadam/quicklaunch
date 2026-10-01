@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="440" height="280" viewBox="0 0 440 280" role="img" aria-label="QuickLaunch: fast access to saved sites and snippets">
+  <defs>
+    <linearGradient id="background" x2="1" y2="1">
+      <stop stop-color="#171c27"/>
+      <stop offset="1" stop-color="#24313a"/>
+    </linearGradient>
+    <linearGradient id="brand" x2="1" y2="1">
+      <stop stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <rect width="440" height="280" rx="18" fill="url(#background)"/>
+  <circle cx="388" cy="27" r="108" fill="#8ab4f8" opacity=".055"/>
+  <rect x="24" y="25" width="44" height="44" rx="12" fill="url(#brand)"/>
+  <path d="M49 34 35 53h10l-4 10 17-21H48z" fill="#fde047"/>
+  <text x="80" y="54" fill="#f7f8fb" font-family="Arial, sans-serif" font-size="25" font-weight="700">QuickLaunch</text>
+  <text x="25" y="112" fill="#f7f8fb" font-family="Arial, sans-serif" font-size="22" font-weight="700">Your sites.</text>
+  <text x="25" y="142" fill="#a9c9fb" font-family="Arial, sans-serif" font-size="22" font-weight="700">One keystroke away.</text>
+  <text x="25" y="188" fill="#c7cbd3" font-family="Arial, sans-serif" font-size="14">Search • Workspaces • Hotkeys</text>
+  <rect x="24" y="217" width="175" height="36" rx="18" fill="#303a49" stroke="#64748b" stroke-opacity=".5"/>
+  <text x="42" y="240" fill="#f7f8fb" font-family="Arial, sans-serif" font-size="13" font-weight="600">Local-first browser tools</text>
+  <g transform="translate(263 80)">
+    <rect width="154" height="174" rx="16" fill="#22272f" stroke="#48505c"/>
+    <rect x="13" y="13" width="128" height="22" rx="11" fill="#393f47"/>
+    <circle cx="29" cy="24" r="5" fill="none" stroke="#a9adb7" stroke-width="1.5"/>
+    <path d="m33 28 4 4" stroke="#a9adb7" stroke-width="1.5"/>
+    <text x="48" y="28" fill="#a9adb7" font-family="Arial, sans-serif" font-size="10">Search and launch</text>
+    <g font-family="Arial, sans-serif" font-size="15" font-weight="700" text-anchor="middle">
+      <rect x="16" y="55" width="32" height="32" rx="9" fill="#343c48"/><text x="32" y="76" fill="#ffffff">G</text>
+      <rect x="61" y="55" width="32" height="32" rx="9" fill="#343c48"/><text x="77" y="76" fill="#ffffff">N</text>
+      <rect x="106" y="55" width="32" height="32" rx="9" fill="#343c48"/><text x="122" y="76" fill="#ffffff">S</text>
+      <rect x="16" y="99" width="32" height="32" rx="9" fill="#343c48"/><text x="32" y="120" fill="#ffffff">D</text>
+      <rect x="61" y="99" width="32" height="32" rx="9" fill="#343c48"/><text x="77" y="120" fill="#ffffff">F</text>
+      <rect x="106" y="99" width="32" height="32" rx="9" fill="#343c48"/><text x="122" y="120" fill="#ffffff">R</text>
+    </g>
+    <rect x="10" y="143" width="134" height="1" fill="#48505c"/>
+    <rect x="17" y="150" width="47" height="17" rx="8" fill="#3a4351"/>
+    <text x="40" y="162" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif" font-size="10">Main</text>
+    <text x="81" y="162" fill="#a9adb7" font-family="Arial, sans-serif" font-size="10">Work</text>
+  </g>
+</svg>
