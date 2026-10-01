@@ -1,0 +1,14 @@
+[
+  {
+    "scenario": "failed-regression",
+    "failed": true,
+    "expectedReasonPresent": true,
+    "archiveCreated": false
+  },
+  {
+    "scenario": "missing-dom-reference",
+    "failed": true,
+    "expectedReasonPresent": true,
+    "archiveCreated": false
+  }
+]
