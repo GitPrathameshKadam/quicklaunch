@@ -121,8 +121,8 @@
 
       <!-- Color mode -->
       <div class="setting-group">
-        <label>Color mode</label>
-        <div class="segmented-control" id="themeControl">
+        <span class="setting-label" id="colorModeLabel">Color mode</span>
+        <div class="segmented-control" id="themeControl" role="group" aria-labelledby="colorModeLabel">
           <button data-value="dark" class="seg-btn active">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
             Dark
@@ -152,8 +152,8 @@
 
       <!-- Icon shape -->
       <div class="setting-group">
-        <label>Icon shape</label>
-        <div class="icon-shape-control">
+        <span class="setting-label" id="iconShapeLabel">Icon shape</span>
+        <div class="icon-shape-control" role="group" aria-labelledby="iconShapeLabel">
           <label class="shape-option" data-value="circle">
             <input type="radio" name="iconShape" value="circle">
             <div class="shape-preview shape-circle"></div>
@@ -174,8 +174,8 @@
 
       <!-- Icon size -->
       <div class="setting-group">
-        <label>Icon size</label>
-        <div class="segmented-control" id="iconSizeControl">
+        <span class="setting-label" id="iconSizeLabel">Icon size</span>
+        <div class="segmented-control" id="iconSizeControl" role="group" aria-labelledby="iconSizeLabel">
           <button data-value="32" class="seg-btn">Small</button>
           <button data-value="48" class="seg-btn active">Medium</button>
           <button data-value="64" class="seg-btn">Large</button>
@@ -266,8 +266,8 @@
       <div class="divider"></div>
 
       <div class="setting-group">
-        <label>Search bar position</label>
-        <div class="segmented-control" id="searchPositionControl">
+        <span class="setting-label" id="searchPositionLabel">Search bar position</span>
+        <div class="segmented-control" id="searchPositionControl" role="group" aria-labelledby="searchPositionLabel">
           <button data-value="top" class="seg-btn active">Top</button>
           <button data-value="bottom" class="seg-btn">Bottom</button>
         </div>

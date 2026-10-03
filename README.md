@@ -19,7 +19,7 @@ QuickLaunch is a premium, highly configurable Chrome extension that transforms y
 - Enable **Behavior → Keep popup open after copying** to copy several snippets in one session. Copy feedback stays on the card and preserves keyboard focus.
 - Regression checks and a reproducible, allowlisted Store package are included. See [the review](docs/REVIEW_2026-09-30.md) for verification limits and remaining release checks.
 - See [the UI review](docs/UI_REVIEW_2026-09-30.md) for the redesign and [the workflow follow-up](docs/WORKFLOW_REVIEW_2026-09-30.md) for the latest rendered checks, search measurements, and screenshots.
-- See [the production follow-up](docs/PRODUCTION_REVIEW_2026-09-30.md) for delayed-operation regressions, native verification, build gates, and remaining acceptance limits.
+- Installed Chrome upgrade, clipboard permissions, concurrency, export/restore, worker wake-up and restart checks: [October 3–4 acceptance results](docs/CHROME_ACCEPTANCE_2026-10-03.md). Current release and Store status: [STORE_RELEASE.md](STORE_RELEASE.md).
 - See [the copyright and Store policy review](docs/POLICY_REVIEW_2026-10-02.md) for license attribution, updated privacy wording, release images and submission requirements.
 
 ## ✨ Highlights

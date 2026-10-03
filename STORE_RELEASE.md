@@ -1,17 +1,19 @@
 # QuickLaunch 2.7 release candidate
 
-Prepared September 30, 2026. This is a local candidate pending the real-Chrome checks below.
+Prepared September 30, 2026; release checkpoint updated October 4 after installed-Chrome acceptance on October 3–4. The user explicitly authorized **submission for review with deferred publication**. Native acceptance below is complete for the recorded methods, not a universal production or policy certification. The Store accepted the final package as draft version **2.7** on October 4; published version remains **2.6**. Review submission is the final pending action.
 
 - Published listing was last verified on September 30 as **2.6**, updated September 26, 2026. Recheck its live state before submission.
 - Next version: **2.7**, minimum Chrome **114**; permissions are unchanged.
 - Build with `npm run package`; it requires regression and structural checks to pass before writing an archive.
-- Upload candidate: `dist/quicklaunch-v2.7.zip`, with hash and source parity records beside it.
-- Detailed review and outstanding acceptance checks: [REVIEW_2026-09-30.md](docs/REVIEW_2026-09-30.md).
+- Upload candidate: `dist/quicklaunch-v2.7.zip`, **127,477 bytes / 26 files**, SHA-256 `94d84a2b269721277a9fc4bb1fccbfa7de8d01094cda0d033b9c7ca706ef53eb`. Archive CRC and every packaged byte match current source; adjacent hash records are current.
+- Installed-Chrome acceptance: [CHROME_ACCEPTANCE_2026-10-03.md](docs/CHROME_ACCEPTANCE_2026-10-03.md), covering the October 3–4 methods and limits.
+- Earlier source review and historical checkpoints: [REVIEW_2026-09-30.md](docs/REVIEW_2026-09-30.md).
 - Interface review and current rendered evidence: [UI_REVIEW_2026-09-30.md](docs/UI_REVIEW_2026-09-30.md).
 - Latest workflow additions and rendered evidence: [WORKFLOW_REVIEW_2026-09-30.md](docs/WORKFLOW_REVIEW_2026-09-30.md).
-- False-conflict fix and successful native Brave saves: [STORAGE_CONFLICT_FIX_2026-09-30.md](docs/STORAGE_CONFLICT_FIX_2026-09-30.md). Broader Chrome acceptance checks below remain open.
+- Earlier false-conflict fix and focused native Brave saves: [STORAGE_CONFLICT_FIX_2026-09-30.md](docs/STORAGE_CONFLICT_FIX_2026-09-30.md). Normal-Chrome results supersede that limited native checkpoint.
 - Copyright, privacy and listing artifact review: [POLICY_REVIEW_2026-10-02.md](docs/POLICY_REVIEW_2026-10-02.md).
-- Latest production audit: [PRODUCTION_REVIEW_2026-09-30.md](docs/PRODUCTION_REVIEW_2026-09-30.md), including startup/pending-operation data-loss fixes, native Brave save/download checks, legacy fixtures and build failure injection. **Submission remains on hold.**
+- Source production audit: [PRODUCTION_REVIEW_2026-09-30.md](docs/PRODUCTION_REVIEW_2026-09-30.md), including delayed-operation regressions, legacy fixtures and build failure injection. Its earlier submission hold describes the prior checkpoint.
+- Public privacy policy is deployed and byte-matches the packaged policy. The Store Privacy draft was inspected and saved with updated permission justifications; free/public/all-regions Distribution was inspected. At-rest encryption applicability remains unresolved, as described in the policy review. Review submission does not certify an exemption or complete policy clearance.
 
 ## Proposed release notes
 
@@ -25,26 +27,29 @@ Fixed false save conflicts caused by object-field ordering during storage round-
 
 Prevents edits before saved data loads, repeated collection actions during saves, and delayed callbacks opening obsolete editors. Fixes stale Settings row targets, launch/permission error handling and incomplete backup exports. Improves bulk snippet import performance and preserves all partial-launch warnings.
 
-## Required before submission
+## Completed acceptance and remaining submission work
 
-- [ ] Load the extracted candidate ZIP in a clean normal-Chrome profile and verify there are no service-worker, CSP, or extension errors.
-- [ ] Verify upgrade from the byte-verified 2.6 archive with shortcuts, two workspaces, snippets, counts, and search-position settings preserved.
-- [ ] Save from the popup while Settings is open; confirm a stale conflicting save shows reload instructions and preserves both saved datasets.
-- [ ] Close the popup immediately during a shortcut/group launch and immediately after Save; verify persisted content and counts after reopening and a browser restart.
-- [ ] Verify delayed startup/save interaction and actual export/restore with synthetic data in installed Chrome. Native Brave reload/save/download checks are recorded; they do not complete this Chrome gate.
-- [ ] Verify clipboard permission **deny, grant, revoke**, and read failure on Settings/Behavior. Grant/revoke require the user to handle Chrome's permission prompt.
-- [ ] Verify repeated snippet copying with Keep popup open enabled, default close behavior when disabled, Enter/number copy matching the ranked list, and the new preference surviving upgrade/export/restore.
-- [ ] Confirm drag, cancel, scroll, and inline rename in the real popup, including reduced-motion and System theme behavior.
-- [ ] Verify actual cached favicons, current-tab launch, and partial group failure in Chrome.
-- [ ] Publish the reviewed privacy policy so the public page describes 2.7 clipboard failure behavior and error notifications.
-- [ ] Compare the new 1280×800 `promo/v2.7-settings-dark.jpg`, `promo/v2.7-snippets-dark.jpg` and `promo/v2.7-appearance-light.jpg` with the extracted candidate in installed Chrome, then replace the old listing images. These captures use real UI code with synthetic APIs/data. `promo/v2.7-popup-copy.jpg` is a 380×510 QA image, not a valid Store screenshot size. See `promo/RELEASE_IMAGES.md`.
-- [ ] Re-run release checks, verify the ZIP hash, then submit the approved package.
+- [x] Load the extracted candidate in signed-out **QuickLaunch QA**, normal Chrome **154.0.8037.95 arm64**; upgrade from the byte-verified 2.6 archive at the same unpacked identity with representative shortcuts, two workspaces, snippets, counts and view preferences preserved.
+- [x] Verify first Settings save and meaningful concurrent-save recovery. The deliberate stale-save test produced one expected conflict error, preserved both saved datasets and offered reload; it was recorded and cleared only in the QA console. October 4 Options Console contained zero messages after the successful paths.
+- [x] Save a new snippet and immediately dismiss the popup with Escape, then use native `chrome://restart` and reopen the existing QA profile. Saved title/body, preferences, workspaces and counts survived. The resulting local QA export has SHA-256 `5a4b7985bf8f16e702cb60713d11945ca0faff001a5144ff83222233ec41254c` and confirmed Google/Wikipedia/English-Wikipedia counts **8 / 4 / 1**.
+- [x] Verify actual export/restore with sample data; repeated snippet copying, default close behavior, Enter/number hotkeys, and clipboard permission **deny/grant/revoke**. Clipboard-read access is off at the final checkpoint.
+- [x] Launch Google in current-tab mode: it replaced the Wikipedia tab without adding a tab, displayed a native Google favicon, and Quick Add detected the existing Google title/URL without increasing the three-shortcut count.
+- [x] Launch the Design workspace: a real two-tab Wikipedia group completed after the popup closed. Wikipedia's count rose **3→4** and English Wikipedia's **0→1**.
+- [x] Verify final inline rename to **Google Search** and all three accessible tile labels. Observe native Appearance view changes and scroll, select System mode, exercise Chrome Rendering's `prefers-reduced-motion: reduce` override, then restore **No emulation**. Final QA state retains clipboard access off, Keep popup open enabled and current-tab launch mode.
+- [x] Pass **96/96** regressions and package structure checks; verify **26** shipping files, CRC, final source parity and hash. Delayed startup/save, forced quota/read failures, clipboard read failure, drag cancellation/pointer races and partial group failure are covered by regression tests; they were not deliberately forced in the native profile. These classifications are recorded in the acceptance report.
+- [x] Publish the reviewed privacy policy: public HTTP 200 and exact live/package policy parity verified; inspect/save Store Privacy justifications and retain the accurate unencrypted-storage disclosure.
+- [x] Capture and inspect three final native 1280×800 RGB PNGs, upload them to the draft, and remove the old screenshots after user confirmation. Inventory and hashes: [RELEASE_IMAGES.md](promo/RELEASE_IMAGES.md). Older synthetic JPGs, including the light mid-transition capture, are superseded; the 380×510 popup JPG remains QA-only.
+- [x] Reload the Store Listing on October 4 and verify the three thumbnails show final dark Settings, dark Snippets and light Appearance. Click **Save draft** and observe **Item saved**. The current listing images are saved; this does not submit or publish the update.
+- [ ] Reconcile final source/docs/images on the reviewed GitHub branch, rebuild there and compare the final hash before upload.
+- [ ] Upload the final ZIP and submit for review with **deferred publication**; record the observed dashboard status. No full policy clearance, Google approval or public deployment is implied by submitting.
 
-The native folder picker prevented completion of the normal-Chrome load in the September 30 review. The synthetic browser preview and mocked API checks are recorded separately in the detailed report.
+The September 30 folder-picker problem is historical; the October 3–4 normal-Chrome acceptance run completed. The documented methods do not certify every crash, OS condition, capacity limit or fault scenario. Obtain authoritative clarification of the at-rest encryption question, or a designed/tested implementation, before claiming that requirement is satisfied. The prepared support inquiry remains unsent.
 
 ---
 
-# QuickLaunch 2.6 Chrome Web Store release
+# Historical QuickLaunch 2.6 Chrome Web Store release
+
+The following is the archived September 25 submission record and original guidance. Its unchecked checklist is historical and does not describe the remaining work for the current 2.7 review submission.
 
 ## Submission record (25 September 2026)
 
@@ -94,3 +99,7 @@ The extension handles saved URLs, local per-URL counts, snippets and optional cl
 - [ ] Upload `quicklaunch-v2.6-store-fixed.zip` after the browser checks above. The older `quicklaunch-v2.6-store.zip` predates these fixes. Defer publication until Store review is complete if a final manual check is desired.
 
 Official references: [program policies](https://developer.chrome.com/docs/webstore/program-policies/policies), [privacy fields](https://developer.chrome.com/docs/webstore/cws-dashboard-privacy), [listing images](https://developer.chrome.com/docs/webstore/images), [publishing](https://developer.chrome.com/docs/webstore/publish/).
+
+## October 4 upload checkpoint
+
+The dashboard accepted `quicklaunch-v2.7.zip` at the recorded final hash. Package tables show draft 2.7 and published 2.6 with the same permission list. The three native listing images persisted after reload, and Save draft reported Item saved. Saved 496-character reviewer instructions describe ordinary unencrypted local storage and the core testing steps; no credentials were provided. Final submission status must be recorded after the dashboard confirms it.

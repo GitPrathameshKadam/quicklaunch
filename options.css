@@ -177,6 +177,15 @@ h3 {
   color: var(--text-primary);
 }
 
+.options-page .setting-group > .setting-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .settings-row {
   display: flex;
   gap: 24px;

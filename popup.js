@@ -522,6 +522,17 @@ document.addEventListener('DOMContentLoaded', () => {
       if (newTitle && newTitle !== original) {
         shortcut.title = newTitle;
         saveShortcuts();
+        if (parentA) {
+          parentA.setAttribute('aria-label', newTitle);
+          parentA.title = newTitle;
+          const removeBtn = parentA.querySelector('.remove-btn');
+          if (removeBtn) {
+            removeBtn.setAttribute('aria-label', `Remove ${newTitle}`);
+            removeBtn.title = `Remove ${newTitle}`;
+          }
+          const editBtn = parentA.querySelector('.edit-url-btn');
+          if (editBtn) editBtn.setAttribute('aria-label', `Edit ${newTitle}`);
+        }
         const fallback = parentA && parentA.querySelector('.fallback-icon');
         if (fallback) fallback.textContent = newTitle.charAt(0);
       } else {
