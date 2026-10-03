@@ -37,3 +37,40 @@ test('a snippets-only backup can be validated', () => {
   assert.equal(snippets[0].tags[0], 'text');
   assert.equal(snippets[0].tags.length, 1);
 });
+
+test('legacy appearance overrides are ignored while color mode is preserved', () => {
+  const defaults = { theme: 'system', workspaces: [] };
+  const result = backup.settings({ theme: 'light', visualStyle: 'claymorphism', accentColor: '#ff0000' }, defaults);
+  assert.equal(result.theme, 'light');
+  assert.equal(Object.hasOwn(result, 'visualStyle'), false);
+  assert.equal(Object.hasOwn(result, 'accentColor'), false);
+  assert.equal(backup.settings({ theme: 'invalid' }, defaults).theme, 'system');
+});
+
+test('a fresh or externally reset installation exports a complete restorable backup', () => {
+  const data = backup.exportData({}, { rows: 4, theme: 'dark', workspaces: [] }, '2.7');
+  assert.equal(data.shortcuts.length, 0);
+  assert.equal(data.snippets.length, 0);
+  assert.equal(data.settings.workspaces[0].id, 'w_default');
+  const current = { settings: backup.settings(undefined, {}), shortcuts: [], snippets: [], usageCounts: {}, sortMode: 'manual' };
+  const restored = backup.importData(data, current, 'replace', () => 'new');
+  assert.equal(restored.shortcuts.length, 0);
+  assert.equal(restored.settings.theme, 'dark');
+});
+
+test('bulk snippet imports remain ordered and repeated merges are idempotent', () => {
+  const data = { snippets: Array.from({ length: 4000 }, (_, i) => ({ id: String(i), title: 'Note ' + i, text: 'Body ' + i, tags: ['tag'] })) };
+  const current = { settings: backup.settings(undefined, {}), shortcuts: [], snippets: [], usageCounts: {}, sortMode: 'manual' };
+  const first = backup.importData(data, current, 'merge', () => 'new');
+  const second = backup.importData(data, first, 'merge', () => 'new');
+  assert.equal(first.snippets.length, 4000);
+  assert.equal(first.snippets[3999].text, 'Body 3999');
+  assert.equal(second.addedSnippets, 0);
+  assert.equal(second.snippets.length, 4000);
+});
+
+test('an ID generator collision cannot produce a backup that loses a snippet on reopening', () => {
+  const current = { settings: backup.settings(undefined, {}), shortcuts: [], snippets: [{ id: 'same', title: 'Existing', text: 'One', tags: [] }], usageCounts: {}, sortMode: 'manual' };
+  assert.throws(() => backup.importData({ snippets: [{ id: 'same', title: 'Different', text: 'Two' }] }, current, 'merge', () => 'same'), /unique snippet ID/);
+  assert.equal(current.snippets.length, 1);
+});

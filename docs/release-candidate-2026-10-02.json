@@ -1,0 +1,238 @@
+{
+  "verified_date": "2026-10-04",
+  "version": "2.7",
+  "archive": "dist/quicklaunch-v2.7.zip",
+  "archive_sha256": "94d84a2b269721277a9fc4bb1fccbfa7de8d01094cda0d033b9c7ca706ef53eb",
+  "archive_bytes": 127477,
+  "regression_tests": 96,
+  "regression_passed": 96,
+  "packaged_files": 26,
+  "source_sha256": {
+    "THIRD_PARTY_NOTICES.md": "c76b254650142b4561be316b85aa80a49684e7a4d3a7ec6760865cd3a7883ae7",
+    "assets/icon128.png": "9a579b543f19fc099cde43922d2f56ac5539a51e3ba87c86fc0810e52aaa5637",
+    "assets/icon16.png": "be29b844419258767c3b19ab5c49f32d2207fd523881031fc6a22c3e72c5de72",
+    "assets/icon48.png": "26539a44d9a358dd5e99c4e66ada535f6d4ab28f15d7ba2b926733a269fe6a0a",
+    "assets/libs/atom-one-dark.min.css": "4237ffca7ce6aadb438c457e0a675b125c534bbdda5b87f41f3a1495603bcc9b",
+    "assets/libs/highlight.min.js": "837a6fa5b0c736b52bbde2b2b6190f305da3fc9ed41681db5321507057b5c846",
+    "assets/libs/marked.min.js": "3e7e7d7feb3e5d58cb6c804f68ab5c24cc7e5eb6270fd6e5cbb9124739217d0c",
+    "background.js": "3c67c985122aa23b8a5a1bf6b310831e8e24579ca23047b4ae0e5395a2f3ce84",
+    "backup.js": "52414afe160129850ba7a45bbce7609eff0dcf85a40063ce26ca61cbbff282e3",
+    "manifest.json": "25505946b768f0cc20d1528164a2ed377665e956657ef16c742b0ed9bff2abb5",
+    "options.css": "2e243316ebf428231ace4b4c583aa45012823792c6fbb12bedbb116384096a4c",
+    "options.html": "eefb36eddc3e11759068f614f7b7c559e66438ec0508c62a8d8ea04cb41c249f",
+    "options.js": "8bf5ae16e213e10551b3b224e9177629f40b0e2ac3fabeb7c827b7550ea02fb5",
+    "popup.css": "dd24def77644da1e874ef466ed35d13e35c2a582f25333593618c81c6f7b996b",
+    "popup.html": "22296a47b7af1f11da580e0a5933ec71eb2f80bf7c8f58c249c22924b70ce37b",
+    "popup.js": "92e50140d2ce3b3191ce0c43af4679e932a754af11e369ebd45424cbbcb9f691",
+    "privacy.html": "988c0750727ce5b6127605c207d33c6366a55446137b890f6696324903f0b0e4",
+    "search.js": "df15f9ee91bcd15315ef28d05a08836ad1adabe3c44bfb1bba3f9068aa09d2ef",
+    "snippet.js": "33a8b43efb1445fe5d9b515c92ddea75641ecca8615302c76b721ea7c3548472",
+    "storage-value.js": "865ff859b61c76bdbcac8e98e21f89ee16d3217f0e29252b4434f8329ab04108",
+    "storage-worker.js": "7cb6cf6cf71e2364640cc5ea290a05e979697cfd2d000f646f7f98c97820c075",
+    "storage.js": "47bccbf6ac609b99edc5e6396cbbf68a052a9c8feb0e428515631b07bc4c65f0",
+    "third_party_licenses/feather-LICENSE.txt": "308028e93fcf84972523cdf6e616f73168546b4953895f516d01287f16fe7bee",
+    "third_party_licenses/highlightjs-LICENSE.txt": "6c081431591d9df696c82dc598fe1423765b8a299b200ed00b281afd0f64c490",
+    "third_party_licenses/marked-LICENSE.md": "8e3a3f82f59a60958f56ca08f445647c32a4733dc7ca6c2c46f6eb898471ab9c",
+    "ui.css": "cedec25828e4c4c90a5a886236e59217d9e111219c8d43d46efe99781a3fae5c"
+  },
+  "listing_images": {
+    "promo/v2.7-settings-dark-native.png": {
+      "sha256": "6465929a182dc51007e4e7b4c6341fb4dfbf7c99a42dd8ed75852539b5be7f36",
+      "bytes": 162973,
+      "width": 1280,
+      "height": 800,
+      "format": "24-bit RGB PNG",
+      "capture": "installed normal Chrome; native DevTools Capture screenshot; DPR 1"
+    },
+    "promo/v2.7-snippets-dark-native.png": {
+      "sha256": "886dda9d6e7d2e24a129dd9b5cd630c1ff9a5e48d11851e7911b38c70184daed",
+      "bytes": 135245,
+      "width": 1280,
+      "height": 800,
+      "format": "24-bit RGB PNG",
+      "capture": "installed normal Chrome; native DevTools Capture screenshot; DPR 1"
+    },
+    "promo/v2.7-appearance-light-native.png": {
+      "sha256": "97b54322c8bdce87147dd0247e7e4b8bb757ce7bdaf0909cf2691a7edc6ff6ab",
+      "bytes": 143542,
+      "width": 1280,
+      "height": 800,
+      "format": "24-bit RGB PNG",
+      "capture": "installed normal Chrome; native DevTools Capture screenshot; DPR 1"
+    }
+  },
+  "native_chrome_acceptance": "complete for recorded native methods; regression-only fault cases and limits documented",
+  "store_submission": "submitted on 2026-10-04; Pending review; publication deferred/manual; version 2.7 not approved or live",
+  "public_privacy_deployment": "verified",
+  "public_privacy_verification": {
+    "verified_date": "2026-10-03",
+    "url": "https://gitprathameshkadam.github.io/quicklaunch/privacy.html",
+    "http_status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "bytes": 7762,
+    "public_sha256": "988c0750727ce5b6127605c207d33c6366a55446137b890f6696324903f0b0e4",
+    "packaged_sha256": "988c0750727ce5b6127605c207d33c6366a55446137b890f6696324903f0b0e4",
+    "body_matches_packaged_policy": true,
+    "merged_pull_request": "https://github.com/GitPrathameshKadam/quicklaunch/pull/1",
+    "publishing_branch": "codex/privacy-policy-site",
+    "merge_commit": "5b0f182ce42b41b8ca3337613b55d9e13ae0dbad"
+  },
+  "native_chrome_verification": {
+    "verified_date": "2026-10-04",
+    "browser": "Google Chrome 154.0.8037.95",
+    "architecture": "arm64",
+    "profile": "QuickLaunch QA (signed out)",
+    "report": "docs/CHROME_ACCEPTANCE_2026-10-03.md",
+    "same_identity_upgrade": {
+      "from_version": "2.6",
+      "to_version": "2.7",
+      "baseline_archive_sha256": "d0239707c0475fa67f407992dc119b51597fd5cdb002f7b6a783a6f98ece94ad",
+      "status": "passed"
+    },
+    "passed": [
+      "First Settings save",
+      "Genuine concurrent-save conflict protection",
+      "Repeated snippet copy with Keep popup open enabled",
+      "Default popup close after copying",
+      "Snippet keyboard hotkeys",
+      "Native export and restore with sample data",
+      "Clipboard permission deny, grant and revoke",
+      "Current-tab Google launch replaced Wikipedia without opening an extra tab",
+      "Native cached Google favicon visible",
+      "Current-tab Quick Add detected duplicate Google title/URL; shortcut count remained three",
+      "Actual Design workspace group opened two Wikipedia tabs after popup closed",
+      "Group usage counts persisted: Wikipedia 3 to 4; English Wikipedia 0 to 1",
+      "Snippet save followed immediately by Escape persisted across full native Chrome restart",
+      "Saved title/body, preferences, workspaces and usage counts retained after chrome://restart",
+      "Final inline rename to Google Search and all three accessible tile labels",
+      "Native Appearance view changes and scroll; System mode selection",
+      "Chrome Rendering prefers-reduced-motion reduce override observed",
+      "October 4 Options Console had zero messages after successful paths"
+    ],
+    "clipboard_read_permission_at_checkpoint": "off",
+    "remaining": [],
+    "run_dates": [
+      "2026-10-03",
+      "2026-10-04"
+    ],
+    "restart_method": "Native chrome://restart and reopening the existing signed-out QuickLaunch QA profile",
+    "expected_console_error": {
+      "count": 1,
+      "cause": "Deliberately stale concurrent save",
+      "classification": "Expected storage conflict recovery; both saved datasets preserved",
+      "cleared": "Only the QA console after recording the deliberate test"
+    },
+    "regression_only_fault_cases": [
+      "Forced delayed startup and pending-save interaction",
+      "Forced storage quota and read failures",
+      "Forced clipboard read failure",
+      "Forced partial group-launch failure",
+      "Drag cancellation and pointer races"
+    ],
+    "limits": "Recorded native acceptance is not universal certification of crashes, OS conditions, worker termination timing, capacity or every failure scenario.",
+    "export_evidence": {
+      "local_file": "/Users/falcon/Downloads/quicklaunch-backup-2026-10-03.json",
+      "bytes": 1942,
+      "sha256": "5a4b7985bf8f16e702cb60713d11945ca0faff001a5144ff83222233ec41254c",
+      "usage_counts_after_restart": {
+        "Google": 8,
+        "Wikipedia": 4,
+        "English Wikipedia": 1
+      },
+      "saved_snippet_title_and_body_preserved": true,
+      "preferences_and_workspaces_preserved": true,
+      "qa_data_only": true,
+      "excluded_from_extension_package": true
+    },
+    "rendering_emulation_at_checkpoint": "No emulation (restored after native reduced-motion test)",
+    "qa_preferences_at_checkpoint": {
+      "clipboard_read_permission": "off",
+      "keep_open_after_copy": true,
+      "launch_mode": "current tab"
+    }
+  },
+  "store_listing_images": "pre-submission saved-draft checkpoint verified on 2026-10-04; three final native PNGs persisted after page reload; Save draft reported Item saved; version 2.7 subsequently submitted for review",
+  "review_authorization": {
+    "user_authorized": true,
+    "requested_action": "Submit update for review with deferred publication after final package/listing checks",
+    "policy_clearance": "Not certified; at-rest encryption applicability remains unresolved",
+    "policy_report": "docs/POLICY_REVIEW_2026-10-02.md"
+  },
+  "store_listing_verification": {
+    "verified_date": "2026-10-04",
+    "checkpoint": "Historical pre-submission saved listing draft",
+    "native_image_count": 3,
+    "old_screenshots_removed_after_user_confirmation": true,
+    "reloaded_thumbnail_views": [
+      "Dark Settings",
+      "Dark Snippets",
+      "Light Appearance"
+    ],
+    "save_action": "Save draft",
+    "save_result": "Item saved",
+    "state": "Saved draft at image-verification checkpoint; version 2.7 subsequently submitted and now pending review"
+  },
+  "store_package_upload": {
+    "verified_date": "2026-10-04",
+    "checkpoint": "Historical accepted package upload before review submission",
+    "filename": "quicklaunch-v2.7.zip",
+    "archive_sha256": "94d84a2b269721277a9fc4bb1fccbfa7de8d01094cda0d033b9c7ca706ef53eb",
+    "draft_version": "2.7",
+    "published_version": "2.6",
+    "unchanged_permission_list": true,
+    "dashboard_validation": "Accepted; draft package table displays 2.7"
+  },
+  "store_review_instructions": {
+    "saved": true,
+    "characters": 496,
+    "credentials_required": false,
+    "unencrypted_local_storage_disclosed": true
+  },
+  "source_release_verification": {
+    "tested_source_commit": "cea8a2cae7f22ac43797c4189803584a6c1e297e",
+    "pushed_to_reviewed_github_branch": true,
+    "verified_date": "2026-10-04",
+    "ci_run_id": "37158126755",
+    "ci_run_url": "https://github.com/GitPrathameshKadam/quicklaunch/actions/runs/37158126755",
+    "ci_run_result": "success",
+    "package_job_id": "111305717569",
+    "package_job_result": "success",
+    "package_step_result": "success",
+    "test_log": {
+      "tests": 96,
+      "passed": 96,
+      "failed": 0
+    },
+    "structure_check_packaged_files": 26,
+    "archive_entries": 26,
+    "archive_sha256": "94d84a2b269721277a9fc4bb1fccbfa7de8d01094cda0d033b9c7ca706ef53eb",
+    "packaged_bytes_match_current_source": true
+  },
+  "store_submission_verification": {
+    "verified_date": "2026-10-04",
+    "item_id": "dihfnkdobkjncafdlhephnongepaiphf",
+    "submitted_version": "2.7",
+    "archive": "quicklaunch-v2.7.zip",
+    "archive_sha256": "94d84a2b269721277a9fc4bb1fccbfa7de8d01094cda0d033b9c7ca706ef53eb",
+    "archive_bytes": 127477,
+    "archive_entries": 26,
+    "publication_checkbox_label": "Publish 'QuickLaunch' automatically after it has passed review",
+    "publication_checkbox_value_before_change": 1,
+    "publication_checkbox_value_before_submit": 0,
+    "automatic_publication_after_review": false,
+    "new_terms_presented": false,
+    "confirmation_heading": "Your extension was submitted for review",
+    "staged_expiry_notice": "Items staged to be published later will expire 30 days after they have passed review.",
+    "dashboard_header_status": "Pending review",
+    "status_draft_text": "This draft is pending review.",
+    "package_information_after_submission": {
+      "draft_version": "2.7",
+      "published_version": "2.6"
+    },
+    "publication_mode": "Deferred; separate manual publication after review approval",
+    "review_approval": "Not granted at submission checkpoint",
+    "version_2_7_publicly_deployed": false,
+    "policy_clearance": "Not certified; at-rest encryption applicability remains unresolved",
+    "support_inquiry_sent": false
+  }
+}

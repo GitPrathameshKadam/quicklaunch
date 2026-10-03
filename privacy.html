@@ -54,7 +54,7 @@
   <div class="container">
     <header>
       <h1>QuickLaunch — Privacy Policy</h1>
-      <p>Last updated: September 2026 &nbsp;·&nbsp; Applies to QuickLaunch 2.6</p>
+      <p>Last updated: October 2, 2026 &nbsp;·&nbsp; Applies to QuickLaunch 2.6 and 2.7</p>
     </header>
 
     <div class="highlight">
@@ -62,7 +62,7 @@
     </div>
 
     <h2>1. What data QuickLaunch stores</h2>
-    <p>QuickLaunch saves the following data using Chrome's built-in <code>chrome.storage.local</code> API, which stores data <strong>only on your device</strong> and is never shared with anyone:</p>
+    <p>QuickLaunch saves the following data in your browser profile using Chrome's built-in <code>chrome.storage.local</code> API. QuickLaunch does not upload this data or use Chrome's storage sync API. The developer does not receive or share it:</p>
     <ul>
       <li>Your shortcut titles, URLs, and favicons</li>
       <li>Your workspace names, organisation, and last selected workspace</li>
@@ -74,9 +74,9 @@
 
     <h2>2. External network requests</h2>
     <p><strong>QuickLaunch does not send saved data to the developer, analytics services, or an icon service.</strong> When you choose to open a saved shortcut or click a link in a snippet, Chrome makes the normal request to that destination site.</p>
-    <p>Shortcut icons are read from your browser's own favicon cache using Chrome's built-in extension favicon API (<code>_favicon/</code>). These are local lookups inside your browser — no request leaves your device, and no third party is contacted or informed about which sites you have saved. Sites your browser has no cached icon for display a generic or letter-based icon instead.</p>
+    <p>Shortcut icons are requested through Chrome's built-in extension favicon API (<code>_favicon/</code>), using the browser's own icon handling. QuickLaunch does not send saved URLs to an external favicon service. Missing icons display a generic or letter-based fallback. Chrome's own network activity and the websites you choose to visit are governed by their respective privacy policies.</p>
     <p>Snippet previews show text and code formatting without loading remote images or other remote resources.</p>
-    <p>There are no analytics, no telemetry, no crash reporting, no advertising, and no external APIs of any kind.</p>
+    <p>QuickLaunch includes no analytics, telemetry, crash reporting, advertising, or developer-operated external API.</p>
     <div class="highlight">
       <strong>Note on earlier versions:</strong> QuickLaunch 2.5 and earlier fetched icons from Google's public favicon service (<code>google.com/s2/favicons</code>), which meant Google received a request identifying a saved site's domain each time the popup displayed that icon. Version 2.6 removed this entirely and ignores any icon addresses stored by earlier versions.
     </div>
@@ -86,15 +86,15 @@
       <li><strong>storage</strong> — To save and load your shortcuts, snippets, and settings locally on your device.</li>
       <li><strong>activeTab</strong> — To read the current tab's URL and title when you click "Add current tab" or use the right-click menu. Only accessed after you explicitly trigger the extension.</li>
       <li><strong>contextMenus</strong> — To add a right-click "Add to QuickLaunch" menu item on pages and links.</li>
-      <li><strong>notifications</strong> — To show a brief desktop notification when a shortcut is added or already exists via the right-click menu.</li>
+      <li><strong>notifications</strong> — To confirm right-click shortcut saves and report failed saves, failed tab grouping, or usage-count updates.</li>
       <li><strong>tabGroups</strong> — To name and colour the tab group created when you click "Open all shortcuts in a tab group". The extension uses the IDs of tabs it just opened to create the group; it does not store those IDs.</li>
-      <li><strong>favicon</strong> — To read shortcut icons from your browser's local favicon cache. This performs no network request and reveals nothing to anyone outside your device.</li>
-      <li><strong>clipboardWrite</strong> — To copy snippet text to your clipboard when you click a snippet or press its number hotkey.</li>
+      <li><strong>favicon</strong> — To display shortcut icons through the browser's built-in favicon API instead of an external icon service.</li>
+      <li><strong>clipboardWrite</strong> — To copy snippet text or a saved shortcut URL when you select the corresponding copy action or hotkey.</li>
     </ul>
     <p>Our use of information received from Google APIs adheres to the Chrome Web Store User Data Policy, including its Limited Use requirements. Data accessed through Chrome APIs is used only to provide QuickLaunch's described features. We do not sell user data or use it for advertising.</p>
     <p><strong>Optional permission (off by default, never requested at install):</strong></p>
     <ul>
-      <li><strong>clipboardRead</strong> — Used <em>only</em> when a snippet you are copying contains the <code>{{clipboard}}</code> placeholder, to insert your current clipboard text into the snippet. You must turn this on yourself under Settings → Behavior, and you can revoke it there at any time. While it is off, <code>{{clipboard}}</code> simply expands to nothing. Clipboard content is never stored, logged, or transmitted anywhere — it goes straight back onto your clipboard as part of the expanded snippet.</li>
+      <li><strong>clipboardRead</strong> — Used <em>only</em> when a snippet you are copying contains the <code>{{clipboard}}</code> placeholder, to insert your current clipboard text into the snippet. You must turn this on yourself under Settings → Behavior, and you can revoke it there at any time. In 2.7, copying stops if permission is off or reading fails, leaving your clipboard unchanged. In 2.6, a missing clipboard value was replaced with empty text. Clipboard content is never stored, logged, or transmitted anywhere — it goes straight back onto your clipboard as part of the expanded snippet.</li>
     </ul>
 
     <h2>4. Data you export</h2>

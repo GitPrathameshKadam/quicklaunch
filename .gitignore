@@ -6,3 +6,8 @@ dist/
 .env
 .vscode/
 .idea/
+*.zip
+.claude/
+# Native review captures contain the user's browser context; keep them local.
+/docs/visual-qa/conflict-fix-brave.jpg
+/docs/visual-qa/production-native-*.jpg

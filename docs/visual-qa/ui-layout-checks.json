@@ -1,0 +1,72 @@
+[
+  {
+    "bodyWidth": 640,
+    "contentScrollWidth": 576,
+    "contentWidth": 576,
+    "section": "Grid & Shortcuts",
+    "viewport": 640
+  },
+  {
+    "bodyWidth": 640,
+    "contentScrollWidth": 576,
+    "contentWidth": 576,
+    "section": "Appearance",
+    "viewport": 640
+  },
+  {
+    "bodyWidth": 640,
+    "contentScrollWidth": 576,
+    "contentWidth": 576,
+    "section": "Behavior",
+    "viewport": 640
+  },
+  {
+    "bodyWidth": 640,
+    "contentScrollWidth": 576,
+    "contentWidth": 576,
+    "section": "Import / Export",
+    "viewport": 640
+  },
+  {
+    "bodyWidth": 640,
+    "contentScrollWidth": 576,
+    "contentWidth": 576,
+    "section": "Snippets",
+    "viewport": 640
+  },
+  {
+    "bodyWidth": 420,
+    "contentScrollWidth": 356,
+    "contentWidth": 356,
+    "section": "Grid & Shortcuts",
+    "viewport": 420
+  },
+  {
+    "bodyWidth": 420,
+    "contentScrollWidth": 356,
+    "contentWidth": 356,
+    "section": "Appearance",
+    "viewport": 420
+  },
+  {
+    "bodyWidth": 420,
+    "contentScrollWidth": 356,
+    "contentWidth": 356,
+    "section": "Behavior",
+    "viewport": 420
+  },
+  {
+    "bodyWidth": 420,
+    "contentScrollWidth": 356,
+    "contentWidth": 356,
+    "section": "Import / Export",
+    "viewport": 420
+  },
+  {
+    "bodyWidth": 420,
+    "contentScrollWidth": 356,
+    "contentWidth": 356,
+    "section": "Snippets",
+    "viewport": 420
+  }
+]

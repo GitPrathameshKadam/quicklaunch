@@ -1,9 +1,10 @@
-// popup.js — QuickLaunch v2.6
+// popup.js — QuickLaunch v2.7
 
 document.addEventListener('DOMContentLoaded', () => {
   // ── DOM refs ───────────────────────────────────────────────────────────────
   const gridContainer   = document.getElementById('gridContainer');
   const searchInput     = document.getElementById('searchInput');
+  const searchStatus    = document.getElementById('searchStatus');
   const workspaceTabs   = document.getElementById('workspaceTabs');
   const settingsBtn     = document.getElementById('settingsBtn');
   const openGroupBtn    = document.getElementById('openGroupBtn');
@@ -42,22 +43,27 @@ document.addEventListener('DOMContentLoaded', () => {
   const snippetEditCancel = document.getElementById('snippetEditCancel');
   const snippetEditSave   = document.getElementById('snippetEditSave');
 
-  let currentlyEditingGlobalIndex = -1;
+  let currentlyEditingShortcut = null;
   let currentlyEditingSnippetId = null;
+  let addRequest = 0;
 
-  function openEditSheet(shortcut, globalIndex) {
-    currentlyEditingGlobalIndex = parseInt(globalIndex);
+  function openEditSheet(shortcut) {
+    currentlyEditingShortcut = shortcut;
     editSheetTitle.value = shortcut.title;
     editSheetUrl.value = shortcut.url;
     editShortcutSheet.style.display = 'block';
+    editSheetTitle.focus();
   }
 
   editSheetCancel.addEventListener('click', () => {
     editShortcutSheet.style.display = 'none';
+    editBtn.focus();
   });
 
   editSheetSave.addEventListener('click', () => {
-    if (currentlyEditingGlobalIndex === -1) return;
+    if (!currentlyEditingShortcut || !shortcuts.includes(currentlyEditingShortcut)) {
+      showPopupToast('This shortcut was removed. Reopen the editor.', 'error'); return;
+    }
     const newTitle = editSheetTitle.value.trim();
     let newUrl = editSheetUrl.value.trim();
 
@@ -65,33 +71,33 @@ document.addEventListener('DOMContentLoaded', () => {
       showPopupToast('Title and URL are required', 'error');
       return;
     }
-    if (!newUrl.startsWith('http://') && !newUrl.startsWith('https://')) {
-      newUrl = 'https://' + newUrl;
-    }
-    if (!isWebUrl(newUrl)) {
-      showPopupToast('Enter a valid web URL', 'error');
-      return;
-    }
+    newUrl = QuickLaunchBackup.inputUrl(newUrl);
+    if (!newUrl) { showPopupToast('Enter a valid web URL', 'error'); return; }
 
-    const target = shortcuts[currentlyEditingGlobalIndex];
+    const target = currentlyEditingShortcut;
     if (target) {
+      if (shortcuts.some(s => s !== target && s.url === newUrl && s.workspaceId === target.workspaceId)) {
+        showPopupToast('This shortcut is already in this workspace.', 'error'); return;
+      }
       target.title = newTitle;
       target.url = newUrl;
       saveShortcuts(() => {
         editShortcutSheet.style.display = 'none';
         renderGrid();
+        editBtn.focus();
         showPopupToast('Shortcut updated');
       });
     }
   });
 
   // ── State ──────────────────────────────────────────────────────────────────
-  let settings = {
+  const defaultSettings = {
     rows: 4, cols: 4, showTitles: true, fontSize: 12, gridGap: 16,
     theme: 'dark', popupWidth: 380, iconShape: 'circle', iconSize: 48,
-    accentColor: '', openInNewTab: true, showBadges: true, hotkeyAction: 'launch',
+    openInNewTab: true, showBadges: true, hotkeyAction: 'launch', keepOpenAfterCopy: false,
     workspaces: []
   };
+  let settings = { ...defaultSettings };
 
   let shortcuts      = [];
   let snippets       = [];
@@ -102,6 +108,20 @@ document.addEventListener('DOMContentLoaded', () => {
   let isEditMode     = false;
   let activeWorkspaceId = 'w_default';
   let appMode        = 'shortcuts'; // 'shortcuts' or 'snippets'
+  const gridColumns = () => Math.max(1, Math.min(settings.cols,
+    Math.floor((settings.popupWidth - 30 + settings.gridGap) / (settings.iconSize + 14 + settings.gridGap))));
+  const viewMotions = new WeakMap();
+  const dragRecords = new WeakMap();
+  window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', event => {
+    if (event.matches) [gridContainer, snippetsContainer].forEach(view => viewMotions.get(view)?.cancel());
+  });
+  function revealView(view) {
+    viewMotions.get(view)?.cancel();
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || typeof view.animate !== 'function') return;
+    viewMotions.set(view, view.animate([
+      { opacity: .5, transform: 'translateY(4px)' }, { opacity: 1, transform: 'translateY(0)' }
+    ], { duration: 180, easing: 'cubic-bezier(.2,.8,.2,1)' }));
+  }
 
   function isWebUrl(value) {
     try {
@@ -111,10 +131,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function selectWorkspace(id, focusTab = false) {
+    addRequest++;
+    quickAddToast.style.display = 'none';
+    currentTabInfo = null;
     activeWorkspaceId = id;
-    chrome.storage.local.set({ activeWorkspaceId: id });
+    QuickLaunchStorage.set({ activeWorkspaceId: id });
     renderTabs();
     renderGrid();
+    revealView(gridContainer);
     if (focusTab) workspaceTabs.querySelector('.ws-tab.active')?.focus();
   }
 
@@ -155,13 +179,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const shapeMap = { circle: '50%', rounded: '14px', square: '4px' };
     document.documentElement.style.setProperty('--icon-radius', shapeMap[settings.iconShape] || '50%');
     document.body.style.width = `${settings.popupWidth}px`;
-    if (settings.accentColor) {
-      document.documentElement.style.setProperty('--accent-color', settings.accentColor);
-    }
   }
 
   // ── Load from storage ──────────────────────────────────────────────────────
-  chrome.storage.local.get(['settings', 'shortcuts', 'snippets', 'searchPosition', 'usageCounts', 'sortMode', 'activeWorkspaceId'], (result) => {
+  QuickLaunchStorage.get(['settings', 'shortcuts', 'snippets', 'searchPosition', 'usageCounts', 'sortMode', 'activeWorkspaceId'], (result) => {
     if (chrome.runtime.lastError) console.error('Storage read error:', chrome.runtime.lastError);
 
     settings = QuickLaunchBackup.settings(result.settings, settings);
@@ -171,7 +192,9 @@ document.addEventListener('DOMContentLoaded', () => {
     usageCounts = QuickLaunchBackup.usageCounts(result.usageCounts);
     if (SORT_MODES.includes(result.sortMode)) sortMode = result.sortMode;
 
-    if (result.searchPosition === 'bottom') {
+    settings.searchPosition = ['top', 'bottom'].includes(result.searchPosition)
+      ? result.searchPosition : (settings.searchPosition || 'top');
+    if (settings.searchPosition === 'bottom') {
       document.getElementById('app-container').classList.add('search-bottom');
     }
 
@@ -183,11 +206,17 @@ document.addEventListener('DOMContentLoaded', () => {
     updateModeButtons();
     renderTabs();
     renderGrid();
+    requestAnimationFrame(() => {
+      const sheetOpen = [editShortcutSheet, snippetEditSheet, quickAddToast]
+        .some(sheet => sheet.style.display === 'block');
+      if (!QuickLaunchStorage.blocked && !QuickLaunchStorage.busy && !sheetOpen &&
+          document.activeElement === document.body) searchInput.focus();
+    });
   });
 
   // ── Save helpers ───────────────────────────────────────────────────────────
-  function saveShortcuts(cb) {
-    chrome.storage.local.set({ shortcuts }, () => {
+  function saveShortcuts(cb, relatedValues = {}) {
+    QuickLaunchStorage.set({ shortcuts, ...relatedValues }, () => {
       if (chrome.runtime.lastError) {
         console.error('Save shortcuts error:', chrome.runtime.lastError);
         showPopupToast('Could not save shortcuts. Storage may be full.', 'error');
@@ -199,8 +228,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function saveSnippets(cb) {
-    chrome.storage.local.set({ snippets }, () => {
+  function saveSnippets(cb, clearDraft = null) {
+    QuickLaunchStorage.set({ snippets }, () => {
       if (chrome.runtime.lastError) {
         console.error('Save snippets error:', chrome.runtime.lastError);
         showPopupToast('Could not save snippet. Storage may be full.', 'error');
@@ -208,19 +237,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       updateModeButtons();
       if (typeof cb === 'function') cb();
-    });
-  }
-
-  // Saved immediately — a debounce timer dies when the popup closes right
-  // after a launch, which silently dropped the count update.
-  function saveUsageCounts() {
-    chrome.storage.local.set({ usageCounts }, () => {
-      if (chrome.runtime.lastError) console.error('Save usage error:', chrome.runtime.lastError);
-    });
+    }, { clearDraft });
   }
 
   function saveSortMode() {
-    chrome.storage.local.set({ sortMode }, () => {
+    QuickLaunchStorage.set({ sortMode }, () => {
       if (chrome.runtime.lastError) console.error('Save sortMode error:', chrome.runtime.lastError);
     });
   }
@@ -238,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!settings.workspaces.some(w => w.id === activeWorkspaceId)) {
       activeWorkspaceId = settings.workspaces[0].id;
     }
-    if (settings.workspaces.length <= 1) {
+    if (settings.workspaces.length <= 1 || appMode !== 'shortcuts') {
       workspaceTabs.style.display = 'none';
       return;
     }
@@ -258,18 +279,55 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ── Search & Sort ──────────────────────────────────────────────────────────
-  function fuzzyMatch(query, text) {
-    let qIdx = 0;
-    let tIdx = 0;
-    while (qIdx < query.length && tIdx < text.length) {
-      if (query[qIdx] === text[tIdx]) qIdx++;
-      tIdx++;
-    }
-    return qIdx === query.length;
-  }
-
   const SORT_MODES   = ['manual', 'most-used', 'az'];
   const SORT_LABELS  = { manual: 'Sort: Manual', 'most-used': 'Sort: Most Used', az: 'Sort: A – Z' };
+
+  function sortedShortcuts(items) {
+    const result = [...items];
+    if (sortMode === 'az') result.sort((a, b) => a.title.localeCompare(b.title));
+    if (sortMode === 'most-used') result.sort((a, b) => (usageCounts[b.url] || 0) - (usageCounts[a.url] || 0));
+    return result;
+  }
+
+  function getDisplaySnippets() {
+    if (isEditMode || !searchInput.value.trim()) return snippets;
+    return QuickLaunchSearch.rank(snippets, searchInput.value, snippet =>
+      [snippet.title, snippet.tags.join(' '), snippet.text]);
+  }
+
+  function updateSearchStatus(count) {
+    searchStatus.hidden = isEditMode || !searchInput.value.trim();
+    searchStatus.replaceChildren();
+    if (!searchStatus.hidden) {
+      const scope = appMode === 'shortcuts' ? 'All workspaces' : 'Snippets';
+      const summary = document.createElement('span');
+      summary.textContent = `${count} ${count === 1 ? 'result' : 'results'} · ${scope}`;
+      searchStatus.appendChild(summary);
+      if (count) {
+        const hint = document.createElement('kbd');
+        hint.textContent = '↵ Enter';
+        hint.title = appMode === 'shortcuts' ? 'Open first result' : 'Copy first result';
+        hint.setAttribute('aria-hidden', 'true');
+        searchStatus.appendChild(hint);
+      }
+    }
+  }
+
+  function emptySearch(kind) {
+    const message = document.createElement('div');
+    message.className = 'search-empty';
+    const title = document.createElement('p');
+    title.textContent = `No matching ${kind}.`;
+    const hint = document.createElement('p');
+    hint.className = 'hint';
+    hint.textContent = kind === 'shortcuts' ? 'Try a title, URL, or workspace name.' : 'Try a title, tag, or phrase from the text.';
+    const clear = document.createElement('button');
+    clear.className = 'qa-btn secondary';
+    clear.textContent = 'Clear search';
+    clear.addEventListener('click', clearSearch);
+    message.append(title, hint, clear);
+    return message;
+  }
 
   function getDisplayList() {
     const query = searchInput.value.trim().toLowerCase();
@@ -280,12 +338,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (isSearching) {
       // Global string search across all workspaces
-      const globalMatches = shortcuts.filter(s =>
-        fuzzyMatch(query, s.title.toLowerCase()) || fuzzyMatch(query, s.url.toLowerCase())
-      );
+      const names = new Map(settings.workspaces.map(ws => [ws.id, ws.name]));
+      const globalMatches = QuickLaunchSearch.rank(sortedShortcuts(shortcuts), query, shortcut =>
+        [shortcut.title, shortcut.url, names.get(shortcut.workspaceId) || 'Main']);
 
       // Inject exact hotkey match from the currently viewed workspace
-      const numQuery = parseInt(query);
+      const numQuery = /^[0-9]$/.test(query) ? Number(query) : NaN;
       let targetIndex = -1;
       if (!isNaN(numQuery)) {
         if (numQuery >= 1 && numQuery <= 9) targetIndex = numQuery - 1;
@@ -293,7 +351,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       if (targetIndex !== -1 && targetIndex < workspaceShortcuts.length) {
-        const hotkeyTarget = workspaceShortcuts[targetIndex];
+        const visibleWorkspace = sortedShortcuts(workspaceShortcuts);
+        const hotkeyTarget = visibleWorkspace[targetIndex];
         if (!globalMatches.includes(hotkeyTarget)) {
           globalMatches.unshift(hotkeyTarget);
         }
@@ -303,14 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Sort the whole workspace BEFORE truncating to the grid — slicing first
       // meant "Most Used" only ranked the first rows×cols items in manual order,
       // so a heavily-used shortcut further down could never reach the grid.
-      let base = [...workspaceShortcuts];
-      if (sortMode !== 'manual') {
-        base.sort((a, b) => {
-          if (sortMode === 'most-used') return (usageCounts[b.url] || 0) - (usageCounts[a.url] || 0);
-          if (sortMode === 'az') return a.title.localeCompare(b.title);
-          return 0;
-        });
-      }
+      const base = sortedShortcuts(workspaceShortcuts);
       // In edit mode show ALL shortcuts so the user can reorder/manage every item
       return isEditMode ? base : base.slice(0, maxItems);
     }
@@ -333,9 +385,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Mode Switcher ──────────────────────────────────────────────────────────
   function setAppMode(newMode) {
+    addRequest++;
     appMode = newMode;
+    document.getElementById('copyStatus').textContent = '';
     modeShortcutsBtn.classList.toggle('active', appMode === 'shortcuts');
     modeSnippetsBtn.classList.toggle('active', appMode === 'snippets');
+    modeShortcutsBtn.setAttribute('aria-pressed', String(appMode === 'shortcuts'));
+    modeSnippetsBtn.setAttribute('aria-pressed', String(appMode === 'snippets'));
+    emptyState.style.display = 'none';
+    quickAddToast.style.display = 'none';
+    currentTabInfo = null;
+    editShortcutSheet.style.display = 'none';
+    snippetEditSheet.style.display = 'none';
+    quickAddBtn.setAttribute('aria-label', appMode === 'shortcuts' ? 'Add current tab' : 'Add new snippet');
+    editBtn.setAttribute('aria-label', appMode === 'shortcuts' ? 'Edit shortcuts' : 'Edit snippets');
+    document.getElementById('editBannerText').textContent = appMode === 'shortcuts'
+      ? 'Drag to reorder • ✕ remove • tap title to rename' : 'Manage snippets';
     
     if (appMode === 'shortcuts') {
       gridContainer.style.display = 'grid'; // will be overridden by renderGrid if needed
@@ -356,6 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
       openGroupBtn.style.display = 'none';
       renderSnippets();
     }
+    revealView(appMode === 'shortcuts' ? gridContainer : snippetsContainer);
   }
 
   modeShortcutsBtn.addEventListener('click', () => setAppMode('shortcuts'));
@@ -363,6 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Edit mode ──────────────────────────────────────────────────────────────
   function setEditMode(active) {
+    addRequest++;
     isEditMode = active;
     editBtn.classList.toggle('active', active);
     editBtn.setAttribute('aria-pressed', String(active));
@@ -396,9 +463,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Only forget the usage count once no copy of this URL remains
     if (usageCounts[url] && !shortcuts.some(s => s.url === url)) {
       delete usageCounts[url];
-      saveUsageCounts();
+      saveShortcuts(() => renderGrid(), { usageCounts });
+    } else {
+      saveShortcuts(() => renderGrid());
     }
-    saveShortcuts(() => renderGrid());
   }
 
   function deleteSnippet(id) {
@@ -454,6 +522,17 @@ document.addEventListener('DOMContentLoaded', () => {
       if (newTitle && newTitle !== original) {
         shortcut.title = newTitle;
         saveShortcuts();
+        if (parentA) {
+          parentA.setAttribute('aria-label', newTitle);
+          parentA.title = newTitle;
+          const removeBtn = parentA.querySelector('.remove-btn');
+          if (removeBtn) {
+            removeBtn.setAttribute('aria-label', `Remove ${newTitle}`);
+            removeBtn.title = `Remove ${newTitle}`;
+          }
+          const editBtn = parentA.querySelector('.edit-url-btn');
+          if (editBtn) editBtn.setAttribute('aria-label', `Edit ${newTitle}`);
+        }
         const fallback = parentA && parentA.querySelector('.fallback-icon');
         if (fallback) fallback.textContent = newTitle.charAt(0);
       } else {
@@ -495,12 +574,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Render grid ────────────────────────────────────────────────────────────
   function renderGrid() {
+    if (appMode !== 'shortcuts') return;
     gridContainer.innerHTML = '';
     focusedIndex = -1;
 
     const query      = searchInput.value.trim().toLowerCase();
     const isSearching = query !== '' && !isEditMode;
     const list       = getDisplayList();
+    updateSearchStatus(list.length);
 
     if (list.length === 0 && !isSearching) {
       gridContainer.style.display = 'none';
@@ -510,18 +591,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     gridContainer.style.display = 'grid';
     emptyState.style.display = 'none';
-    gridContainer.style.gridTemplateColumns = `repeat(${settings.cols}, minmax(0, 1fr))`;
+    gridContainer.style.gridTemplateColumns = `repeat(${gridColumns()}, minmax(0, 1fr))`;
     gridContainer.classList.toggle('hide-titles', !settings.showTitles);
 
+    if (!list.length) { gridContainer.appendChild(emptySearch('shortcuts')); return; }
+
     const gridFrag = document.createDocumentFragment();
+    const indices = new Map(shortcuts.map((shortcut, index) => [shortcut, index]));
     list.forEach((shortcut, displayIndex) => {
-      const a = document.createElement('a');
+      const a = document.createElement(isEditMode ? 'div' : 'a');
       a.className = 'shortcut-item';
-      a.href = shortcut.url;
+      dragRecords.set(a, shortcut);
+      if (isEditMode) a.setAttribute('role', 'group');
+      else a.href = shortcut.url;
+      const workspaceName = settings.workspaces.find(ws => ws.id === shortcut.workspaceId)?.name || 'Main';
+      a.setAttribute('aria-label', isSearching ? `${shortcut.title} · ${workspaceName}` : shortcut.title);
+      a.title = isSearching ? `${shortcut.title} · ${workspaceName}\n${shortcut.url}` : shortcut.title;
       a.tabIndex = 0;
       a.dataset.index = displayIndex;
-      a.dataset.globalIndex = shortcuts.indexOf(shortcut);
-      a.style.animationDelay = `${displayIndex * 0.025}s`;
+      a.dataset.globalIndex = indices.get(shortcut);
 
       if (isEditMode) {
         a.classList.add('edit-mode');
@@ -602,11 +690,11 @@ document.addEventListener('DOMContentLoaded', () => {
         editUrlBtn.addEventListener('click', e => {
           e.preventDefault();
           e.stopPropagation();
-          openEditSheet(shortcut, a.dataset.globalIndex);
+          openEditSheet(shortcut);
         });
         a.appendChild(editUrlBtn);
       } else {
-        if (displayIndex < 10 && settings.showBadges !== false) {
+        if (displayIndex < 10 && settings.showBadges !== false && settings.hotkeyAction !== 'type') {
           const badge = document.createElement('div');
           badge.className = 'hotkey-badge';
           badge.textContent = displayIndex === 9 ? '0' : (displayIndex + 1).toString();
@@ -632,9 +720,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Ignore right-click, active renaming, and clicks on the remove button
             if (e.button !== 0) return;
             if (a.querySelector('[data-renaming]')) return;
-            if (e.target.closest('.remove-btn')) return;
+            if (e.target.closest('.remove-btn, .edit-action-btn, .shortcut-title')) return;
 
-            const fromIdx = parseInt(a.dataset.globalIndex);
             const startX  = e.clientX;
             const startY  = e.clientY;
             let dragging  = false;
@@ -708,6 +795,7 @@ document.addEventListener('DOMContentLoaded', () => {
               document.removeEventListener('pointermove', onMove);
               document.removeEventListener('pointerup', onUp);
               document.removeEventListener('pointercancel', onCancel);
+          window.removeEventListener('blur', onCancel);
               a.classList.remove('dragging');
               document.querySelectorAll('.shortcut-item').forEach(el => el.classList.remove('drag-over'));
 
@@ -717,9 +805,11 @@ document.addEventListener('DOMContentLoaded', () => {
                   a.removeAttribute('data-dragged');
                 }, 100);
 
-                if (dropTarget) {
-                  const toIdx = parseInt(dropTarget.dataset.globalIndex);
-                  if (!isNaN(toIdx) && fromIdx !== toIdx) {
+                if (dropTarget && a.isConnected && dropTarget.isConnected &&
+                    !QuickLaunchStorage.blocked && !QuickLaunchStorage.busy) {
+                  const fromIdx = shortcuts.indexOf(shortcut);
+                  const toIdx = shortcuts.indexOf(dragRecords.get(dropTarget));
+                  if (fromIdx >= 0 && toIdx >= 0 && fromIdx !== toIdx) {
                     const [moved] = shortcuts.splice(fromIdx, 1);
                     shortcuts.splice(toIdx, 0, moved);
                     saveShortcuts(() => renderGrid());
@@ -733,6 +823,7 @@ document.addEventListener('DOMContentLoaded', () => {
               document.removeEventListener('pointermove', onMove);
               document.removeEventListener('pointerup', onUp);
               document.removeEventListener('pointercancel', onCancel);
+          window.removeEventListener('blur', onCancel);
               a.classList.remove('dragging');
               document.querySelectorAll('.shortcut-item').forEach(el => el.classList.remove('drag-over'));
             };
@@ -740,6 +831,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.addEventListener('pointermove', onMove);
             document.addEventListener('pointerup', onUp);
             document.addEventListener('pointercancel', onCancel);
+        window.addEventListener('blur', onCancel, { once: true });
           });
         } else {
           a.title = "Switch to 'Manual' sort to reorder items.";
@@ -753,60 +845,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
       a.appendChild(iconWrapper);
       a.appendChild(title);
+      if (isSearching && settings.workspaces.length > 1) {
+        const workspace = document.createElement('span');
+        workspace.className = 'shortcut-workspace';
+        workspace.textContent = workspaceName;
+        a.appendChild(workspace);
+      }
       gridFrag.appendChild(a);
     });
     gridContainer.appendChild(gridFrag);
   }
 
   // ── Open shortcut + track usage ────────────────────────────────────────────
-  function openShortcut(url) {
-    if (!isWebUrl(url)) return;
-    usageCounts[url] = (usageCounts[url] || 0) + 1;
-    saveUsageCounts();
-
-    if (settings.openInNewTab) {
-      chrome.tabs.create({ url });
-    } else {
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (tabs[0]) chrome.tabs.update(tabs[0].id, { url });
-        else         chrome.tabs.create({ url });
-      });
+  let isLaunching = false;
+  async function sendLaunch(request) {
+    if (isLaunching || !QuickLaunchStorage.ready || QuickLaunchStorage.blocked || QuickLaunchStorage.busy) return;
+    isLaunching = true;
+    openGroupBtn.disabled = true;
+    try {
+      const result = await chrome.runtime.sendMessage({ type: 'launch', ...request });
+      if (!result?.ok) throw new Error(result?.error || 'Could not open shortcuts.');
+      window.close();
+    } catch (error) {
+      showPopupToast(error.message || 'Could not open shortcuts.', 'error');
+    } finally {
+      isLaunching = false;
+      openGroupBtn.disabled = false;
     }
   }
 
-  // ── Open workspace as tab group ────────────────────────────────────────────
-  const GROUP_COLORS = ['blue', 'red', 'yellow', 'green', 'pink', 'purple', 'cyan', 'orange'];
+  function openShortcut(url) {
+    if (isWebUrl(url)) sendLaunch({ url });
+  }
 
+  // The worker owns this operation so opening tabs cannot interrupt it.
   function openWorkspaceGroup() {
-    const list = shortcuts.filter(s =>
-      (s.workspaceId || 'w_default') === activeWorkspaceId &&
-      isWebUrl(s.url)
-    );
-    if (list.length === 0) {
-      showPopupToast('No shortcuts in this workspace.', 'error');
-      return;
-    }
+    const list = shortcuts.filter(s => (s.workspaceId || 'w_default') === activeWorkspaceId);
+    if (!list.length) { showPopupToast('No shortcuts in this workspace.', 'error'); return; }
     if (list.length > 10 && !confirm(`Open all ${list.length} shortcuts in this workspace?`)) return;
-
-    list.forEach(s => { usageCounts[s.url] = (usageCounts[s.url] || 0) + 1; });
-    saveUsageCounts();
-
-    const ws = settings.workspaces.find(w => w.id === activeWorkspaceId);
-    const wsIndex = Math.max(0, settings.workspaces.findIndex(w => w.id === activeWorkspaceId));
-
-    Promise.all(list.map(s => new Promise(resolve =>
-      chrome.tabs.create({ url: s.url, active: false }, tab => resolve(tab && tab.id))
-    ))).then(ids => {
-      const tabIds = ids.filter(id => typeof id === 'number');
-      if (tabIds.length === 0) { window.close(); return; }
-      chrome.tabs.group({ tabIds }, groupId => {
-        if (chrome.runtime.lastError || typeof groupId !== 'number') { window.close(); return; }
-        chrome.tabGroups.update(groupId, {
-          title: ws ? ws.name : 'QuickLaunch',
-          color: GROUP_COLORS[wsIndex % GROUP_COLORS.length]
-        }, () => window.close());
-      });
-    });
+    sendLaunch({ workspaceId: activeWorkspaceId, confirmed: list.length > 10 });
   }
 
   openGroupBtn.addEventListener('click', openWorkspaceGroup);
@@ -829,17 +906,41 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 80);
   });
 
-  searchClearBtn.addEventListener('click', () => {
+  function clearSearch() {
+    clearTimeout(searchDebounce);
     searchInput.value = '';
     updateSearchClear();
     searchInput.focus();
     if (appMode === 'shortcuts') renderGrid();
     else renderSnippets();
-  });
+  }
+  searchClearBtn.addEventListener('click', clearSearch);
 
   // ── Keyboard navigation ────────────────────────────────────────────────────
   document.addEventListener('keydown', e => {
+    if (QuickLaunchStorage.blocked || e.isComposing || e.repeat) return;
+    const sheetOpen = [editShortcutSheet, snippetEditSheet, quickAddToast]
+      .some(sheet => sheet.style.display === 'block');
+    if (sheetOpen || document.activeElement?.isContentEditable) return;
     if (e.key === 'Escape' && isEditMode) { setEditMode(false); return; }
+    if (e.key === 'Escape' && searchInput.value) { e.preventDefault(); clearSearch(); return; }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f' && !e.altKey) {
+      e.preventDefault(); searchInput.focus(); searchInput.select(); return;
+    }
+    if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && !e.altKey && document.activeElement === searchInput && searchInput.value.trim()) {
+      e.preventDefault();
+      clearTimeout(searchDebounce);
+      if (appMode === 'shortcuts') {
+        renderGrid();
+        const first = getDisplayList()[0];
+        if (first) openShortcut(first.url);
+      } else {
+        renderSnippets();
+        const first = getDisplaySnippets()[0];
+        if (first) copySnippet(first);
+      }
+      return;
+    }
 
     if ((e.ctrlKey || e.metaKey) && e.key >= '1' && e.key <= '9') {
       const wsIndex = parseInt(e.key) - 1;
@@ -851,7 +952,8 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const items = [...gridContainer.querySelectorAll('.shortcut-item')];
+    const items = [...(appMode === 'shortcuts' ? gridContainer.querySelectorAll('.shortcut-item')
+      : snippetsContainer.querySelectorAll('.snippet-item'))];
 
     if (['ArrowRight','ArrowLeft','ArrowDown','ArrowUp'].includes(e.key)) {
       if (document.activeElement === searchInput) {
@@ -865,8 +967,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
       if (!items.includes(document.activeElement)) return;
+      focusedIndex = items.indexOf(document.activeElement);
       e.preventDefault();
-      const cols = settings.cols;
+      const cols = appMode === 'shortcuts' ? gridColumns() : 1;
       if      (e.key === 'ArrowRight') focusedIndex = Math.min(focusedIndex + 1, items.length - 1);
       else if (e.key === 'ArrowLeft')  focusedIndex = Math.max(focusedIndex - 1, 0);
       else if (e.key === 'ArrowDown')  focusedIndex = Math.min(focusedIndex + cols, items.length - 1);
@@ -881,7 +984,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const activeTagName = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
     const isTypingInInput = activeTagName === 'input' || activeTagName === 'textarea';
 
-    if (!isEditMode && (!isTypingInInput || (document.activeElement === searchInput && settings.hotkeyAction !== 'type'))) {
+    if (!e.ctrlKey && !e.metaKey && !e.altKey && !isEditMode && (!isTypingInInput || (document.activeElement === searchInput && settings.hotkeyAction !== 'type'))) {
       const num = parseInt(e.key);
       if (!isNaN(num) && num >= 0 && num <= 9 && e.key.trim() !== '') {
         e.preventDefault();
@@ -896,19 +999,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const targetIndex = num === 0 ? 9 : num - 1;
             if (targetIndex < list.length) {
               openShortcut(list[targetIndex].url);
-              window.close();
             }
           } else {
             // Snippets hotkeys
-            const query = searchInput.value.trim().toLowerCase();
-            let list = snippets;
-            if (query !== '') {
-              list = snippets.filter(s =>
-                fuzzyMatch(query, s.title.toLowerCase()) ||
-                fuzzyMatch(query, s.text.toLowerCase()) ||
-                (s.tags ? s.tags.some(tag => fuzzyMatch(query, tag.toLowerCase())) : false)
-              );
-            }
+            const list = getDisplaySnippets();
             const targetIndex = num === 0 ? 9 : num - 1;
             if (targetIndex < list.length) {
               copySnippet(list[targetIndex]);
@@ -918,8 +1012,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    if (!isEditMode && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !isTypingInInput) {
+    if (!e.defaultPrevented && !isEditMode && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey && !isTypingInInput) {
+      e.preventDefault();
+      searchInput.value += e.key;
       searchInput.focus();
+      searchInput.dispatchEvent(new Event('input'));
     }
   });
 
@@ -927,8 +1024,12 @@ document.addEventListener('DOMContentLoaded', () => {
   quickAddBtn.addEventListener('click', () => {
     if (isEditMode) setEditMode(false);
     if (appMode === 'shortcuts') {
-      chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
-        if (chrome.runtime.lastError || !tabs[0]) return;
+      const request = ++addRequest;
+      const workspaceId = activeWorkspaceId;
+      try { chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+        const error = chrome.runtime.lastError;
+        if (request !== addRequest || appMode !== 'shortcuts' || QuickLaunchStorage.blocked) return;
+        if (error || !tabs?.[0]) { showPopupToast('Could not read the current tab. Try again.', 'error'); return; }
         const tab = tabs[0];
         if (!isWebUrl(tab.url)) {
           showPopupToast('Cannot add this page type.', 'error'); return;
@@ -937,7 +1038,7 @@ document.addEventListener('DOMContentLoaded', () => {
           title: tab.title || new URL(tab.url).hostname,
           url:   tab.url,
           icon:  '', // resolved locally at render time, see getIconUrl()
-          workspaceId: activeWorkspaceId
+          workspaceId
         };
         const previewIcon = getIconUrl(currentTabInfo);
         qaIcon.src = previewIcon;
@@ -945,7 +1046,8 @@ document.addEventListener('DOMContentLoaded', () => {
         qaTitle.textContent = currentTabInfo.title;
         qaUrl.textContent   = currentTabInfo.url;
         quickAddToast.style.display = 'block';
-      });
+        qaConfirmBtn.focus();
+      }); } catch { showPopupToast('Could not read the current tab. Try again.', 'error'); }
     } else {
       openSnippetSheet();
     }
@@ -953,7 +1055,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   qaConfirmBtn.addEventListener('click', () => {
     if (!currentTabInfo) return;
-    const exists = shortcuts.some(s => s.url === currentTabInfo.url);
+    const exists = shortcuts.some(s => s.url === currentTabInfo.url && (s.workspaceId || 'w_default') === currentTabInfo.workspaceId);
     if (exists) {
       quickAddToast.style.display = 'none';
       showPopupToast('Already in your shortcuts!', 'info'); return;
@@ -967,6 +1069,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   qaCancelBtn.addEventListener('click', () => {
+    addRequest++;
     quickAddToast.style.display = 'none';
     currentTabInfo = null;
   });
@@ -990,8 +1093,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // HTML; in particular, remote images and CSS URLs would make network requests
   // when a snippet is previewed, even though the extension is local-only.
   function sanitizeHtml(html) {
-    const div = document.createElement('div');
-    div.innerHTML = html;
+    const template = document.createElement('template');
+    template.innerHTML = html;
+    const div = template.content;
     const allowed = new Set([
       'P', 'BR', 'STRONG', 'EM', 'B', 'I', 'DEL', 'S', 'CODE', 'PRE',
       'UL', 'OL', 'LI', 'BLOCKQUOTE', 'HR', 'H1', 'H2', 'H3', 'H4',
@@ -1003,7 +1107,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       const href = node.tagName === 'A' ? node.getAttribute('href') : null;
+      const language = node.tagName === 'CODE' ? node.className.match(/^language-[a-z0-9_-]+$/i)?.[0] : null;
       for (const attr of [...node.attributes]) node.removeAttribute(attr.name);
+      if (language) node.className = language;
       if (href) {
         try {
           const url = new URL(href);
@@ -1015,68 +1121,68 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch { /* Keep the link text without an unsafe destination. */ }
       }
     });
-    return div.innerHTML;
+    return template.innerHTML;
   }
 
   // ── Snippet placeholders ───────────────────────────────────────────────────
   // Expands {{clipboard}}, {{date}}, {{time}}, {{datetime}} at copy time.
-  async function expandSnippet(text) {
-    const now = new Date();
-    let out = text
-      .replace(/\{\{date\}\}/gi,     now.toLocaleDateString())
-      .replace(/\{\{time\}\}/gi,     now.toLocaleTimeString())
-      .replace(/\{\{datetime\}\}/gi, now.toLocaleString());
-    if (/\{\{clipboard\}\}/i.test(out)) {
-      // clipboardRead is optional so it costs no install-time warning. It cannot
-      // be requested from here — chrome.permissions.request() dismisses the
-      // popup — so the grant lives on the options page and this only checks.
-      const granted = await new Promise(resolve =>
-        chrome.permissions.contains({ permissions: ['clipboardRead'] }, resolve)
-      );
-      let clip = '';
-      if (!granted) {
-        showPopupToast('Enable clipboard access in Settings to use {{clipboard}}', 'error');
-      } else {
-        try {
-          clip = await navigator.clipboard.readText();
-        } catch {
-          showPopupToast('Could not read clipboard for {{clipboard}}', 'error');
-        }
-      }
-      out = out.replace(/\{\{clipboard\}\}/gi, clip);
-    }
-    return out;
+  function expandSnippet(text) {
+    return QuickLaunchSnippet.expand(text, {
+      hasPermission: () => chrome.permissions.contains({ permissions: ['clipboardRead'] }),
+      readClipboard: () => navigator.clipboard.readText()
+    });
   }
 
-  function copySnippet(snippet, onCopied) {
-    expandSnippet(snippet.text)
-      .then(t => navigator.clipboard.writeText(t))
-      .then(() => {
-        if (typeof onCopied === 'function') onCopied();
-        showPopupToast('Snippet copied to clipboard');
-        setTimeout(() => window.close(), 400); // Close shortly after copying
-      })
-      .catch(() => {
-        showPopupToast('Failed to copy snippet', 'error');
-      });
+  let copyPending = false;
+  let copyCloseTimer = null;
+  const copiedTimers = new WeakMap();
+  async function copySnippet(snippet) {
+    if (copyPending || QuickLaunchStorage.blocked) return;
+    copyPending = true;
+    const opener = document.activeElement;
+    clearTimeout(copyCloseTimer);
+    snippetsContainer.setAttribute('aria-busy', 'true');
+    snippetsContainer.querySelectorAll('.snippet-copy-btn').forEach(button => { button.disabled = true; });
+    try {
+      const text = await expandSnippet(snippet.text);
+      await navigator.clipboard.writeText(text);
+      const card = [...snippetsContainer.querySelectorAll('.snippet-item')].find(el => el.dataset.snippetId === snippet.id);
+      if (card) {
+        clearTimeout(copiedTimers.get(card));
+        card.classList.add('copied');
+        const label = card.querySelector('.snippet-copy-label');
+        if (label) label.textContent = 'Copied';
+        copiedTimers.set(card, setTimeout(() => {
+          card.classList.remove('copied');
+          if (label) label.textContent = 'Copy';
+        }, 1400));
+      }
+      if (settings.keepOpenAfterCopy) document.getElementById('copyStatus').textContent = `Copied ${snippet.title}.`;
+      else showPopupToast('Snippet copied to clipboard');
+      if (!settings.keepOpenAfterCopy) copyCloseTimer = setTimeout(() => {
+        if (![editShortcutSheet, snippetEditSheet, quickAddToast].some(sheet => sheet.style.display === 'block')) window.close();
+      }, 400);
+    } catch (error) {
+      showPopupToast(error.message || 'Failed to copy snippet', 'error');
+    } finally {
+      copyPending = false;
+      snippetsContainer.removeAttribute('aria-busy');
+      snippetsContainer.querySelectorAll('.snippet-copy-btn').forEach(button => { button.disabled = false; });
+      if (opener?.matches('.snippet-copy-btn') && opener.isConnected && document.activeElement === document.body) opener.focus();
+    }
   }
 
   // ── Snippets ───────────────────────────────────────────────────────────────
   function renderSnippets() {
+    if (appMode !== 'snippets') return;
     snippetsContainer.innerHTML = '';
     const query = searchInput.value.trim().toLowerCase();
     
-    let displayList = snippets;
-    if (query !== '' && !isEditMode) {
-      displayList = snippets.filter(s => {
-        const titleMatch = fuzzyMatch(query, s.title.toLowerCase());
-        const textMatch = fuzzyMatch(query, s.text.toLowerCase());
-        const tagsMatch = s.tags ? s.tags.some(tag => fuzzyMatch(query, tag.toLowerCase())) : false;
-        return titleMatch || textMatch || tagsMatch;
-      });
-    }
+    const displayList = getDisplaySnippets();
+    updateSearchStatus(displayList.length);
 
     if (displayList.length === 0) {
+      if (query && !isEditMode) { snippetsContainer.appendChild(emptySearch('snippets')); return; }
       const emptyMsg = document.createElement('div');
       emptyMsg.className = 'snippet-empty';
       emptyMsg.textContent = query !== '' ? 'No matching snippets.' : 'No snippets yet. Add one above!';
@@ -1085,21 +1191,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const snippetFrag = document.createDocumentFragment();
+    const indices = new Map(snippets.map((snippet, index) => [snippet, index]));
     displayList.forEach((snippet, index) => {
       const el = document.createElement('div');
       el.className = 'snippet-item';
-      el.dataset.globalIndex = snippets.indexOf(snippet);
+      dragRecords.set(el, snippet);
+      el.dataset.globalIndex = indices.get(snippet);
+      el.dataset.snippetId = snippet.id;
+      el.tabIndex = 0;
+      el.setAttribute('role', 'group');
+      el.setAttribute('aria-label', `Snippet: ${snippet.title}`);
       
       const header = document.createElement('div');
       header.className = 'snippet-header';
 
       const expandBtn = document.createElement('button');
       expandBtn.className = 'snippet-expand-btn';
+      expandBtn.setAttribute('aria-label', `Preview ${snippet.title}`);
+      expandBtn.setAttribute('aria-expanded', 'false');
       expandBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>';
       expandBtn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
         el.classList.toggle('expanded');
+        expandBtn.setAttribute('aria-expanded', String(el.classList.contains('expanded')));
+        if (el.classList.contains('expanded')) renderPreview();
       });
       header.appendChild(expandBtn);
       
@@ -1111,18 +1227,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const actions = document.createElement('div');
       actions.className = 'snippet-actions';
 
-      const badgeNum = index < 9 ? index + 1 : (index === 9 ? 0 : null);
-      if (badgeNum !== null && !isEditMode) {
-        const badge = document.createElement('div');
-        badge.className = 'snippet-badge';
-        badge.textContent = badgeNum;
-        actions.appendChild(badge);
-      }
+      const badgeNum = settings.hotkeyAction === 'type' || settings.showBadges === false ? null
+        : index < 9 ? index + 1 : (index === 9 ? 0 : null);
 
       if (isEditMode) {
         const editBtn = document.createElement('button');
         editBtn.className = 'snippet-action-btn edit';
         editBtn.title = 'Edit Snippet';
+        editBtn.setAttribute('aria-label', `Edit ${snippet.title}`);
         editBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
         editBtn.addEventListener('click', e => {
           e.preventDefault();
@@ -1133,6 +1245,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const removeBtn = document.createElement('button');
         removeBtn.className = 'snippet-action-btn remove';
+        removeBtn.setAttribute('aria-label', `Remove ${snippet.title}`);
         removeBtn.innerHTML = '&#10005;';
         removeBtn.title = 'Delete Snippet';
         removeBtn.addEventListener('click', e => {
@@ -1145,9 +1258,8 @@ document.addEventListener('DOMContentLoaded', () => {
         el.classList.add('draggable');
         el.addEventListener('pointerdown', e => {
           if (e.button !== 0) return;
-          if (e.target.closest('.snippet-action-btn')) return;
+          if (e.target.closest('a, button')) return;
 
-          const fromIdx = parseInt(el.dataset.globalIndex);
           const startX = e.clientX;
           const startY = e.clientY;
           let dragging = false;
@@ -1216,6 +1328,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.removeEventListener('pointermove', onMove);
             document.removeEventListener('pointerup', onUp);
             document.removeEventListener('pointercancel', onCancel);
+          window.removeEventListener('blur', onCancel);
             el.classList.remove('dragging');
             document.querySelectorAll('.snippet-item').forEach(e => e.classList.remove('drag-over'));
 
@@ -1225,9 +1338,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 el.removeAttribute('data-dragged');
               }, 100);
 
-              if (dropTarget) {
-                const toIdx = parseInt(dropTarget.dataset.globalIndex);
-                if (!isNaN(toIdx) && fromIdx !== toIdx) {
+              if (dropTarget && el.isConnected && dropTarget.isConnected &&
+                  !QuickLaunchStorage.blocked && !QuickLaunchStorage.busy) {
+                const fromIdx = snippets.indexOf(snippet);
+                const toIdx = snippets.indexOf(dragRecords.get(dropTarget));
+                if (fromIdx >= 0 && toIdx >= 0 && fromIdx !== toIdx) {
                   const [moved] = snippets.splice(fromIdx, 1);
                   snippets.splice(toIdx, 0, moved);
                   saveSnippets(() => renderSnippets());
@@ -1241,6 +1356,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.removeEventListener('pointermove', onMove);
             document.removeEventListener('pointerup', onUp);
             document.removeEventListener('pointercancel', onCancel);
+          window.removeEventListener('blur', onCancel);
             el.classList.remove('dragging');
             document.querySelectorAll('.snippet-item').forEach(e => e.classList.remove('drag-over'));
           };
@@ -1248,14 +1364,41 @@ document.addEventListener('DOMContentLoaded', () => {
           document.addEventListener('pointermove', onMove);
           document.addEventListener('pointerup', onUp);
           document.addEventListener('pointercancel', onCancel);
+        window.addEventListener('blur', onCancel, { once: true });
         });
       } else {
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'snippet-action-btn snippet-copy-btn';
+        copyBtn.type = 'button';
+        copyBtn.innerHTML = '<svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span class="snippet-copy-label">Copy</span>';
+        copyBtn.setAttribute('aria-label', `Copy ${snippet.title}`);
+        copyBtn.title = badgeNum === null ? 'Copy snippet' : `Copy snippet (${badgeNum})`;
+        if (badgeNum !== null) {
+          const key = document.createElement('kbd');
+          key.className = 'snippet-copy-key';
+          key.textContent = badgeNum;
+          key.setAttribute('aria-hidden', 'true');
+          copyBtn.setAttribute('aria-keyshortcuts', String(badgeNum));
+          copyBtn.appendChild(key);
+        }
+        copyBtn.addEventListener('click', e => {
+          e.stopPropagation();
+          copySnippet(snippet);
+        });
+        actions.appendChild(copyBtn);
+        el.addEventListener('keydown', e => {
+          if (e.target === el && (e.key === 'Enter' || e.key === ' ')) {
+            e.preventDefault();
+            copySnippet(snippet);
+          }
+        });
         el.addEventListener('click', (e) => {
+          if (e.target.closest('a, button')) return;
           if (el.dataset.dragged === 'true') {
             e.preventDefault();
             return;
           }
-          copySnippet(snippet, () => el.classList.add('copied'));
+          copySnippet(snippet);
         });
       }
 
@@ -1266,6 +1409,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const contentDiv = document.createElement('div');
       contentDiv.className = 'snippet-content';
+      const contentInner = document.createElement('div');
+      contentInner.className = 'snippet-content-inner';
+      contentDiv.appendChild(contentInner);
 
       if (snippet.tags && snippet.tags.length > 0) {
         const tagsDiv = document.createElement('div');
@@ -1276,23 +1422,26 @@ document.addEventListener('DOMContentLoaded', () => {
           pill.textContent = tag;
           tagsDiv.appendChild(pill);
         });
-        contentDiv.appendChild(tagsDiv);
+        contentInner.appendChild(tagsDiv);
       }
 
       const mdDiv = document.createElement('div');
       mdDiv.className = 'snippet-markdown';
-      if (typeof marked !== 'undefined') {
-        mdDiv.innerHTML = sanitizeHtml(marked.parse(snippet.text, { renderer: markdownRenderer }));
-      } else {
-        mdDiv.textContent = snippet.text;
+      function renderPreview() {
+        if (mdDiv.dataset.rendered) return;
+        mdDiv.dataset.rendered = 'true';
+        try {
+          if (typeof marked !== 'undefined' && snippet.text.length <= 100000) {
+            mdDiv.innerHTML = sanitizeHtml(marked.parse(snippet.text, { renderer: markdownRenderer }));
+          } else mdDiv.textContent = snippet.text;
+          if (typeof hljs !== 'undefined') {
+            mdDiv.querySelectorAll('pre code').forEach(block => {
+              if (block.textContent.length <= 20000 && /language-/.test(block.className)) hljs.highlightElement(block);
+            });
+          }
+        } catch { mdDiv.textContent = snippet.text; }
       }
-      
-      if (typeof hljs !== 'undefined') {
-        mdDiv.querySelectorAll('pre code').forEach(block => {
-          hljs.highlightElement(block);
-        });
-      }
-      contentDiv.appendChild(mdDiv);
+      contentInner.appendChild(mdDiv);
 
       el.appendChild(contentDiv);
       snippetFrag.appendChild(el);
@@ -1301,6 +1450,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function openSnippetSheet(snippet = null) {
+    const request = ++addRequest;
     if (snippet) {
       currentlyEditingSnippetId = snippet.id;
       snippetEditTitle.value = snippet.title;
@@ -1310,11 +1460,12 @@ document.addEventListener('DOMContentLoaded', () => {
       snippetEditTitle.focus();
     } else {
       currentlyEditingSnippetId = null;
-      chrome.storage.local.get(['snippetDraft'], (result) => {
+      QuickLaunchStorage.get(['snippetDraft'], (result) => {
+        if (request !== addRequest || appMode !== 'snippets' || QuickLaunchStorage.blocked) return;
         const draft = result.snippetDraft || { title: '', text: '', tags: '' };
-        snippetEditTitle.value = draft.title || '';
-        snippetEditText.value = draft.text || '';
-        document.getElementById('snippetEditTags').value = draft.tags || '';
+        snippetEditTitle.value = typeof draft.title === 'string' ? draft.title : '';
+        snippetEditText.value = typeof draft.text === 'string' ? draft.text : '';
+        document.getElementById('snippetEditTags').value = typeof draft.tags === 'string' ? draft.tags : '';
         snippetEditSheet.style.display = 'block';
         snippetEditTitle.focus();
       });
@@ -1322,35 +1473,32 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ── Auto-save snippet drafts ───────────────────────────────────────────────
-  let draftSaveTimer = null;
   function scheduleDraftSave() {
     if (currentlyEditingSnippetId) return; // Only save drafts for new snippets
-    clearTimeout(draftSaveTimer);
-    draftSaveTimer = setTimeout(() => {
-      chrome.storage.local.set({
-        snippetDraft: {
-          title: snippetEditTitle.value,
-          text: snippetEditText.value,
-          tags: document.getElementById('snippetEditTags').value
-        }
-      });
-    }, 400);
+    // Submit immediately; a popup-close cancels debounce timers.
+    QuickLaunchStorage.saveDraft({
+      title: snippetEditTitle.value,
+      text: snippetEditText.value,
+      tags: document.getElementById('snippetEditTags').value
+    });
   }
   snippetEditTitle.addEventListener('input', scheduleDraftSave);
   snippetEditText.addEventListener('input', scheduleDraftSave);
   document.getElementById('snippetEditTags').addEventListener('input', scheduleDraftSave);
 
   snippetEditCancel.addEventListener('click', () => {
+    addRequest++;
     snippetEditSheet.style.display = 'none';
+    quickAddBtn.focus();
   });
 
   snippetEditSave.addEventListener('click', () => {
     const newTitle = snippetEditTitle.value.trim();
-    const newText = snippetEditText.value.trim();
+    const newText = snippetEditText.value;
     const tagsRaw = document.getElementById('snippetEditTags').value;
     const newTags = tagsRaw.split(',').map(t => t.trim()).filter(t => t !== '');
 
-    if (!newTitle || !newText) {
+    if (!newTitle || !newText.trim()) {
       showPopupToast('Title and Text are required', 'error');
       return;
     }
@@ -1358,13 +1506,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const isNewSnippet = !currentlyEditingSnippetId;
     if (currentlyEditingSnippetId) {
       const target = snippets.find(s => s.id === currentlyEditingSnippetId);
+      if (!target) { showPopupToast('This snippet was removed. Reopen the editor.', 'error'); return; }
       if (target) {
         target.title = newTitle;
         target.text = newText;
         target.tags = newTags;
       }
     } else {
-      const id = 'snip_' + Date.now();
+      const id = 'snip_' + crypto.randomUUID();
       snippets.push({
         id,
         title: newTitle,
@@ -1375,24 +1524,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     saveSnippets(() => {
-      if (isNewSnippet) chrome.storage.local.remove('snippetDraft');
       snippetEditSheet.style.display = 'none';
       renderSnippets();
+      quickAddBtn.focus();
       showPopupToast('Snippet saved');
-    });
+    }, isNewSnippet ? { title: snippetEditTitle.value, text: snippetEditText.value,
+      tags: document.getElementById('snippetEditTags').value } : null);
   });
 
   // ── Export ─────────────────────────────────────────────────────────────────
-  exportBtn.addEventListener('click', () => {
-    const payload = {
-      version:    '2.6',
-      exportedAt: new Date().toISOString(),
-      shortcuts,
-      snippets,
-      settings,
-      usageCounts,
-      sortMode
-    };
+  exportBtn.addEventListener('click', async () => {
+    let saved;
+    try { saved = await chrome.storage.local.get(['shortcuts', 'snippets', 'settings', 'usageCounts', 'sortMode', 'searchPosition']); }
+    catch { showPopupToast('Could not load data for export.', 'error'); return; }
+    const payload = QuickLaunchBackup.exportData(saved, defaultSettings, chrome.runtime.getManifest().version);
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
@@ -1400,7 +1545,7 @@ document.addEventListener('DOMContentLoaded', () => {
     a.download = `quicklaunch-backup-${new Date().toISOString().slice(0,10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    showPopupToast(`Exported ${shortcuts.length} shortcuts, ${snippets.length} snippets`);
+    showPopupToast(`Exported ${saved.shortcuts?.length || 0} shortcuts, ${saved.snippets?.length || 0} snippets`);
   });
 
   // ── Import ─────────────────────────────────────────────────────────────────
@@ -1420,45 +1565,14 @@ document.addEventListener('DOMContentLoaded', () => {
         showPopupToast('Invalid JSON file.', 'error'); return;
       }
 
-      if (!parsed || typeof parsed !== 'object') {
-        showPopupToast('Invalid backup file.', 'error'); return;
-      }
-      const nextWorkspaces = QuickLaunchBackup.workspaces([
-        ...settings.workspaces,
-        ...(Array.isArray(parsed.settings?.workspaces) ? parsed.settings.workspaces : [])
-      ]);
-      const validWsIds = new Set(nextWorkspaces.map(w => w.id));
-      const incoming = QuickLaunchBackup.shortcuts(parsed.shortcuts, validWsIds);
-      const incomingSnippets = QuickLaunchBackup.snippets(parsed.snippets);
-      if (!incoming.length && !incomingSnippets.length) {
-        showPopupToast('No valid shortcuts or snippets found.', 'error'); return;
-      }
+      let next;
+      try {
+        next = QuickLaunchBackup.importData(parsed, { settings, shortcuts, snippets, usageCounts, sortMode }, 'merge', prefix => prefix + crypto.randomUUID());
+      } catch (error) { showPopupToast(error.message, 'error'); return; }
+      const { shortcuts: nextShortcuts, snippets: nextSnippets, settings: nextSettings,
+        usageCounts: nextUsageCounts, sortMode: nextSortMode, added, addedSnippets, skipped } = next;
 
-      const nextShortcuts = [...shortcuts];
-      const nextSnippets = [...snippets];
-      let added = 0;
-      let addedSnippets = 0;
-      for (const item of incoming) {
-        if (!nextShortcuts.some(existing => existing.url === item.url)) {
-          nextShortcuts.push(item);
-          added++;
-        }
-      }
-      for (const item of incomingSnippets) {
-        if (!nextSnippets.some(existing => existing.id === item.id)) {
-          nextSnippets.push(item);
-          addedSnippets++;
-        }
-      }
-      const nextUsageCounts = { ...usageCounts };
-      for (const [url, count] of Object.entries(QuickLaunchBackup.usageCounts(parsed.usageCounts))) {
-        nextUsageCounts[url] = (nextUsageCounts[url] || 0) + count;
-      }
-      const nextSortMode = SORT_MODES.includes(parsed.sortMode) ? parsed.sortMode : sortMode;
-      const nextSettings = { ...settings, workspaces: nextWorkspaces };
-      const workspacesRestored = nextWorkspaces.length > settings.workspaces.length;
-
-      chrome.storage.local.set({
+      QuickLaunchStorage.set({
         shortcuts: nextShortcuts, snippets: nextSnippets, settings: nextSettings,
         usageCounts: nextUsageCounts, sortMode: nextSortMode
       }, () => {
@@ -1475,26 +1589,31 @@ document.addEventListener('DOMContentLoaded', () => {
         renderTabs();
         renderGrid();
         renderSnippets();
-        const skipped = incoming.length - added;
         let msg = `Imported ${added} shortcut${added !== 1 ? 's' : ''}, ${addedSnippets} snippet${addedSnippets !== 1 ? 's' : ''}`;
-        if (skipped > 0) msg += ` (${skipped} dup skipped)`;
-        if (workspacesRestored) msg += ' + workspaces';
+        if (skipped > 0) msg += ` (${skipped} invalid or duplicate items skipped)`;
+
         showPopupToast(msg);
       });
     };
     reader.onerror = () => showPopupToast('Could not read file.', 'error');
+    if (file.size > QuickLaunchBackup.MAX_IMPORT_BYTES) { showPopupToast('Backup is too large (maximum 5 MB).', 'error'); return; }
     reader.readAsText(file);
   });
 
   // ── Settings / navigation ──────────────────────────────────────────────────
-  settingsBtn.addEventListener('click', () => chrome.runtime.openOptionsPage());
-  addFirstBtn.addEventListener('click', () => chrome.runtime.openOptionsPage());
+  function openSettings() {
+    try { chrome.runtime.openOptionsPage(() => {
+      if (chrome.runtime.lastError) showPopupToast('Could not open Settings. Try again.', 'error');
+    }); } catch { showPopupToast('Could not open Settings. Reload QuickLaunch and try again.', 'error'); }
+  }
+  settingsBtn.addEventListener('click', openSettings);
+  addFirstBtn.addEventListener('click', openSettings);
 
   document.querySelectorAll('.quick-start-chip').forEach(chip => {
     chip.addEventListener('click', (e) => {
       const title = e.target.dataset.title;
       const url = e.target.dataset.url;
-      const exists = shortcuts.some(s => s.url === url);
+      const exists = shortcuts.some(s => s.url === url && (s.workspaceId || 'w_default') === activeWorkspaceId);
       if (!exists) {
         shortcuts.push({
           title,
@@ -1519,8 +1638,11 @@ document.addEventListener('DOMContentLoaded', () => {
       t = document.createElement('div');
       t.id = 'popupToast';
       t.className = 'popup-toast';
+      t.setAttribute('role', 'status');
+      t.setAttribute('aria-atomic', 'true');
       document.body.appendChild(t);
     }
+    t.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
     t.textContent  = msg;
     t.dataset.type = type;
     t.classList.add('show');
@@ -1528,11 +1650,21 @@ document.addEventListener('DOMContentLoaded', () => {
     t._timeout = setTimeout(() => t.classList.remove('show'), 2800);
   }
 
-  requestAnimationFrame(() => searchInput.focus());
-
   // ── Keyboard Shortcuts ────────────────────────────────────────────────────
   document.addEventListener('keydown', (e) => {
+    if (QuickLaunchStorage.blocked) return;
+    const sheet = [editShortcutSheet, snippetEditSheet, quickAddToast]
+      .find(el => el.style.display === 'block');
+    if (sheet && e.key === 'Tab') {
+      const controls = [...sheet.querySelectorAll('input:not([type="hidden"]), textarea, button:not([disabled])')];
+      const first = controls[0], last = controls.at(-1);
+      if ((e.shiftKey && document.activeElement === first) || (!e.shiftKey && document.activeElement === last) || !sheet.contains(document.activeElement)) {
+        e.preventDefault();
+        (e.shiftKey ? last : first)?.focus();
+      }
+    }
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+      if (sheet) e.preventDefault();
       if (editShortcutSheet && editShortcutSheet.style.display === 'block') {
         editSheetSave.click();
       } else if (snippetEditSheet && snippetEditSheet.style.display === 'block') {
