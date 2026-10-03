@@ -1,11 +1,12 @@
-# QuickLaunch 2.7 release candidate
+# QuickLaunch 2.7 review submission
 
-Prepared September 30, 2026; release checkpoint updated October 4 after installed-Chrome acceptance on October 3–4. The user explicitly authorized **submission for review with deferred publication**. Native acceptance below is complete for the recorded methods, not a universal production or policy certification. The Store accepted the final package as draft version **2.7** on October 4; published version remains **2.6**. Review submission is the final pending action.
+Prepared September 30, 2026; submission checkpoint updated October 4 after installed-Chrome acceptance on October 3–4. The user explicitly authorized **submission for review with deferred publication**. Native acceptance below is complete for the recorded methods, not a universal production or policy certification. The Store confirmed submission of **2.7** on October 4 and now shows **Pending review**. Automatic publication after review was disabled; published version remains **2.6**. Version 2.7 has not been approved or publicly deployed.
 
-- Published listing was last verified on September 30 as **2.6**, updated September 26, 2026. Recheck its live state before submission.
+- After submission on October 4, the dashboard Package Information tables showed draft **2.7** and published **2.6**. The September 30 public-listing verification remains a historical checkpoint.
 - Next version: **2.7**, minimum Chrome **114**; permissions are unchanged.
 - Build with `npm run package`; it requires regression and structural checks to pass before writing an archive.
 - Upload candidate: `dist/quicklaunch-v2.7.zip`, **127,477 bytes / 26 files**, SHA-256 `94d84a2b269721277a9fc4bb1fccbfa7de8d01094cda0d033b9c7ca706ef53eb`. Archive CRC and every packaged byte match current source; adjacent hash records are current.
+- Tested source commit: `cea8a2cae7f22ac43797c4189803584a6c1e297e`, pushed to the reviewed GitHub branch. [CI run 37158126755](https://github.com/GitPrathameshKadam/quicklaunch/actions/runs/37158126755) and package job `111305717569` completed successfully: **96 tests passed / 0 failed**, **26** packaged files passed structural checks, and the package step verified the same final SHA-256 and current-source parity.
 - Installed-Chrome acceptance: [CHROME_ACCEPTANCE_2026-10-03.md](docs/CHROME_ACCEPTANCE_2026-10-03.md), covering the October 3–4 methods and limits.
 - Earlier source review and historical checkpoints: [REVIEW_2026-09-30.md](docs/REVIEW_2026-09-30.md).
 - Interface review and current rendered evidence: [UI_REVIEW_2026-09-30.md](docs/UI_REVIEW_2026-09-30.md).
@@ -27,7 +28,7 @@ Fixed false save conflicts caused by object-field ordering during storage round-
 
 Prevents edits before saved data loads, repeated collection actions during saves, and delayed callbacks opening obsolete editors. Fixes stale Settings row targets, launch/permission error handling and incomplete backup exports. Improves bulk snippet import performance and preserves all partial-launch warnings.
 
-## Completed acceptance and remaining submission work
+## Completed acceptance and submission work
 
 - [x] Load the extracted candidate in signed-out **QuickLaunch QA**, normal Chrome **154.0.8037.95 arm64**; upgrade from the byte-verified 2.6 archive at the same unpacked identity with representative shortcuts, two workspaces, snippets, counts and view preferences preserved.
 - [x] Verify first Settings save and meaningful concurrent-save recovery. The deliberate stale-save test produced one expected conflict error, preserved both saved datasets and offered reload; it was recorded and cleared only in the QA console. October 4 Options Console contained zero messages after the successful paths.
@@ -39,9 +40,10 @@ Prevents edits before saved data loads, repeated collection actions during saves
 - [x] Pass **96/96** regressions and package structure checks; verify **26** shipping files, CRC, final source parity and hash. Delayed startup/save, forced quota/read failures, clipboard read failure, drag cancellation/pointer races and partial group failure are covered by regression tests; they were not deliberately forced in the native profile. These classifications are recorded in the acceptance report.
 - [x] Publish the reviewed privacy policy: public HTTP 200 and exact live/package policy parity verified; inspect/save Store Privacy justifications and retain the accurate unencrypted-storage disclosure.
 - [x] Capture and inspect three final native 1280×800 RGB PNGs, upload them to the draft, and remove the old screenshots after user confirmation. Inventory and hashes: [RELEASE_IMAGES.md](promo/RELEASE_IMAGES.md). Older synthetic JPGs, including the light mid-transition capture, are superseded; the 380×510 popup JPG remains QA-only.
-- [x] Reload the Store Listing on October 4 and verify the three thumbnails show final dark Settings, dark Snippets and light Appearance. Click **Save draft** and observe **Item saved**. The current listing images are saved; this does not submit or publish the update.
-- [ ] Reconcile final source/docs/images on the reviewed GitHub branch, rebuild there and compare the final hash before upload.
-- [ ] Upload the final ZIP and submit for review with **deferred publication**; record the observed dashboard status. No full policy clearance, Google approval or public deployment is implied by submitting.
+- [x] Reload the Store Listing on October 4 and verify the three thumbnails show final dark Settings, dark Snippets and light Appearance. Click **Save draft** and observe **Item saved**. This records the pre-submission listing-image checkpoint; the update was subsequently submitted as recorded below.
+- [x] Reconcile final source/docs/images on the reviewed GitHub branch, rebuild there and compare the final hash before upload. Pushed source commit `cea8a2c` and successful CI run `37158126755` verified the recorded final package.
+- [x] Upload the final ZIP; the dashboard accepted version **2.7** with unchanged permissions and the recorded package hash.
+- [x] Submit for review with **deferred publication**; observe the confirmation and **Pending review** status. No full policy clearance, Google approval or public deployment is implied by submitting.
 
 The September 30 folder-picker problem is historical; the October 3–4 normal-Chrome acceptance run completed. The documented methods do not certify every crash, OS condition, capacity limit or fault scenario. Obtain authoritative clarification of the at-rest encryption question, or a designed/tested implementation, before claiming that requirement is satisfied. The prepared support inquiry remains unsent.
 
@@ -102,4 +104,13 @@ Official references: [program policies](https://developer.chrome.com/docs/websto
 
 ## October 4 upload checkpoint
 
-The dashboard accepted `quicklaunch-v2.7.zip` at the recorded final hash. Package tables show draft 2.7 and published 2.6 with the same permission list. The three native listing images persisted after reload, and Save draft reported Item saved. Saved 496-character reviewer instructions describe ordinary unencrypted local storage and the core testing steps; no credentials were provided. Final submission status must be recorded after the dashboard confirms it.
+Before submission, the dashboard accepted `quicklaunch-v2.7.zip` at the recorded final hash. Package tables showed draft 2.7 and published 2.6 with the same permission list. The three native listing images persisted after reload, and Save draft reported Item saved. Saved 496-character reviewer instructions describe ordinary unencrypted local storage and the core testing steps; no credentials were provided. This is the historical upload/listing checkpoint, followed by the confirmed submission below.
+
+## Submission record (4 October 2026)
+
+- Chrome Web Store item ID: `dihfnkdobkjncafdlhephnongepaiphf`.
+- Submitted version: **2.7**, archive `quicklaunch-v2.7.zip`, **127,477 bytes / 26 entries**, SHA-256 `94d84a2b269721277a9fc4bb1fccbfa7de8d01094cda0d033b9c7ca706ef53eb`.
+- In the submission dialog, **Publish 'QuickLaunch' automatically after it has passed review** was unchecked; its value was observed changing from **1 to 0** before the final Submit action. No new terms were presented.
+- Confirmation heading: **Your extension was submitted for review**. The dialog stated that items staged for later publication expire **30 days after they have passed review**.
+- After confirming the dialog, the header displayed **Pending review**. The Status view's Draft tab displayed **This draft is pending review**. A subsequent Package Information check showed draft **2.7** and published **2.6**.
+- Publication is **deferred/manual**. Google approval has not been granted at this checkpoint; version 2.7 is not live. After review approval, a separate publication action is required. The at-rest encryption applicability question remains unresolved; review submission and any later approval must not be described as a blanket policy exemption. The support inquiry remains unsent.

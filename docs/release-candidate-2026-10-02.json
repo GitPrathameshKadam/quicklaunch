@@ -62,7 +62,7 @@
     }
   },
   "native_chrome_acceptance": "complete for recorded native methods; regression-only fault cases and limits documented",
-  "store_submission": "not performed",
+  "store_submission": "submitted on 2026-10-04; Pending review; publication deferred/manual; version 2.7 not approved or live",
   "public_privacy_deployment": "verified",
   "public_privacy_verification": {
     "verified_date": "2026-10-03",
@@ -151,7 +151,7 @@
       "launch_mode": "current tab"
     }
   },
-  "store_listing_images": "verified saved draft on 2026-10-04; three final native PNGs persist after page reload; Save draft reported Item saved",
+  "store_listing_images": "pre-submission saved-draft checkpoint verified on 2026-10-04; three final native PNGs persisted after page reload; Save draft reported Item saved; version 2.7 subsequently submitted for review",
   "review_authorization": {
     "user_authorized": true,
     "requested_action": "Submit update for review with deferred publication after final package/listing checks",
@@ -160,6 +160,7 @@
   },
   "store_listing_verification": {
     "verified_date": "2026-10-04",
+    "checkpoint": "Historical pre-submission saved listing draft",
     "native_image_count": 3,
     "old_screenshots_removed_after_user_confirmation": true,
     "reloaded_thumbnail_views": [
@@ -169,10 +170,11 @@
     ],
     "save_action": "Save draft",
     "save_result": "Item saved",
-    "state": "Saved draft; not submitted or published"
+    "state": "Saved draft at image-verification checkpoint; version 2.7 subsequently submitted and now pending review"
   },
   "store_package_upload": {
     "verified_date": "2026-10-04",
+    "checkpoint": "Historical accepted package upload before review submission",
     "filename": "quicklaunch-v2.7.zip",
     "archive_sha256": "94d84a2b269721277a9fc4bb1fccbfa7de8d01094cda0d033b9c7ca706ef53eb",
     "draft_version": "2.7",
@@ -185,5 +187,52 @@
     "characters": 496,
     "credentials_required": false,
     "unencrypted_local_storage_disclosed": true
+  },
+  "source_release_verification": {
+    "tested_source_commit": "cea8a2cae7f22ac43797c4189803584a6c1e297e",
+    "pushed_to_reviewed_github_branch": true,
+    "verified_date": "2026-10-04",
+    "ci_run_id": "37158126755",
+    "ci_run_url": "https://github.com/GitPrathameshKadam/quicklaunch/actions/runs/37158126755",
+    "ci_run_result": "success",
+    "package_job_id": "111305717569",
+    "package_job_result": "success",
+    "package_step_result": "success",
+    "test_log": {
+      "tests": 96,
+      "passed": 96,
+      "failed": 0
+    },
+    "structure_check_packaged_files": 26,
+    "archive_entries": 26,
+    "archive_sha256": "94d84a2b269721277a9fc4bb1fccbfa7de8d01094cda0d033b9c7ca706ef53eb",
+    "packaged_bytes_match_current_source": true
+  },
+  "store_submission_verification": {
+    "verified_date": "2026-10-04",
+    "item_id": "dihfnkdobkjncafdlhephnongepaiphf",
+    "submitted_version": "2.7",
+    "archive": "quicklaunch-v2.7.zip",
+    "archive_sha256": "94d84a2b269721277a9fc4bb1fccbfa7de8d01094cda0d033b9c7ca706ef53eb",
+    "archive_bytes": 127477,
+    "archive_entries": 26,
+    "publication_checkbox_label": "Publish 'QuickLaunch' automatically after it has passed review",
+    "publication_checkbox_value_before_change": 1,
+    "publication_checkbox_value_before_submit": 0,
+    "automatic_publication_after_review": false,
+    "new_terms_presented": false,
+    "confirmation_heading": "Your extension was submitted for review",
+    "staged_expiry_notice": "Items staged to be published later will expire 30 days after they have passed review.",
+    "dashboard_header_status": "Pending review",
+    "status_draft_text": "This draft is pending review.",
+    "package_information_after_submission": {
+      "draft_version": "2.7",
+      "published_version": "2.6"
+    },
+    "publication_mode": "Deferred; separate manual publication after review approval",
+    "review_approval": "Not granted at submission checkpoint",
+    "version_2_7_publicly_deployed": false,
+    "policy_clearance": "Not certified; at-rest encryption applicability remains unresolved",
+    "support_inquiry_sent": false
   }
 }
